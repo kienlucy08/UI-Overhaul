@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Flag, Sparkles, CheckCheck, Check, Plus, Trash2, Pencil, ArrowUpRight,
+  Flag, Sparkles, CheckCheck, Check, Plus, Minus, Trash2, Pencil, ArrowUpRight,
   Search, Filter, Upload, MapPin, Star, QrCode, Paperclip, Calendar,
   Clock, Ruler, ChevronDown, X, Image, AlertTriangle, Info, Loader2,
   MoreHorizontal, Camera, FileImage, Grid3x3, Columns2, ZoomIn
@@ -127,12 +127,21 @@ function TextInput({ placeholder = 'Enter value…', value: init = '' }: { place
   )
 }
 
-function NumberInput({ placeholder = '0', unit }: { placeholder?: string; unit?: string }) {
+function NumberInput({ unit }: { unit?: string }) {
   const [v, setV] = useState('')
+  const step = (delta: number) => setV(s => String((Number(s) || 0) + delta))
   return (
     <div className="flex items-center gap-2">
-      <input type="number" value={v} onChange={e => setV(e.target.value)} placeholder={placeholder}
-        className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black placeholder-std-gray-dm outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-colors" />
+      <div className="flex-1 flex items-center bg-bg-gray-lm border border-nav-gray rounded-lg overflow-hidden focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-400/20 transition-colors">
+        <button onClick={() => step(-1)} className="px-2.5 py-2 text-std-gray-lm hover:text-black hover:bg-hover-gray-lm transition-colors flex-shrink-0 border-r border-nav-gray">
+          <Minus size={13} />
+        </button>
+        <input type="number" value={v} onChange={e => setV(e.target.value)} placeholder="0"
+          className="flex-1 px-3 py-2 text-sm bg-transparent text-black text-center placeholder-std-gray-dm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+        <button onClick={() => step(1)} className="px-2.5 py-2 text-std-gray-lm hover:text-black hover:bg-hover-gray-lm transition-colors flex-shrink-0 border-l border-nav-gray">
+          <Plus size={13} />
+        </button>
+      </div>
       {unit && <span className="text-sm text-std-gray-lm font-medium flex-shrink-0">{unit}</span>}
     </div>
   )
@@ -150,15 +159,14 @@ function YesNoInput({ value: init = null }: { value?: 'Yes' | 'No' | null }) {
   const [v, setV] = useState<'Yes' | 'No' | null>(init)
   return (
     <div className="flex items-center gap-2">
-      {(['Yes', 'No'] as const).map(opt => (
-        <button key={opt} onClick={() => setV(v === opt ? null : opt)}
-          className={clsx('px-5 py-2 rounded-full text-sm font-semibold border-2 transition-all',
-            v === opt
-              ? opt === 'Yes' ? 'bg-teal-400 border-teal-400 text-white shadow-sm' : 'bg-sidebar border-sidebar text-white shadow-sm'
-              : 'bg-bg-gray-lm border-nav-gray text-std-gray-lm hover:border-teal-400/50'
-          )}
-        >{opt}</button>
-      ))}
+      <button onClick={() => setV(v === 'Yes' ? null : 'Yes')}
+        className={clsx('px-5 py-1.5 rounded-full text-sm font-semibold border-2 transition-all',
+          v === 'Yes' ? 'bg-teal-400 text-white border-teal-400 shadow-sm' : 'bg-white text-std-gray-lm border-nav-gray hover:border-teal-400/50 hover:text-teal-600'
+        )}>Yes</button>
+      <button onClick={() => setV(v === 'No' ? null : 'No')}
+        className={clsx('px-5 py-1.5 rounded-full text-sm font-semibold border-2 transition-all',
+          v === 'No' ? 'bg-sidebar text-white border-sidebar shadow-sm' : 'bg-white text-std-gray-lm border-nav-gray hover:border-std-gray-lm hover:text-black'
+        )}>No</button>
       {v && <button onClick={() => setV(null)} className="p-1 text-std-gray-lm hover:text-black transition-colors"><X size={14} /></button>}
     </div>
   )
@@ -168,20 +176,26 @@ function SelectInput({ options, placeholder = '— Select —' }: { options: str
   const [open, setOpen] = useState(false)
   const [v, setV] = useState<string | null>(null)
   return (
-    <div className="relative">
+    <div>
       <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-bg-gray-lm border border-nav-gray rounded-lg text-sm transition-colors hover:border-teal-400/50 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20">
-        <span className={v ? 'text-black' : 'text-std-gray-dm'}>{v ?? placeholder}</span>
-        <ChevronDown size={14} className={clsx('text-std-gray-lm transition-transform', open && 'rotate-180')} />
+        className={clsx('w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg text-sm transition-colors hover:border-teal-300',
+          open ? 'border-indigo-500/40 ring-2 ring-indigo-500/10' : 'border-nav-gray'
+        )}>
+        <span className={v ? 'text-black' : 'text-std-gray-dm italic'}>{v ?? placeholder}</span>
+        <ChevronDown size={13} className={clsx('text-std-gray-lm transition-transform duration-150', open && 'rotate-180')} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-nav-gray rounded-xl shadow-lg z-10 py-1 max-h-48 overflow-y-auto">
-          {options.map(opt => (
-            <button key={opt} onClick={() => { setV(opt); setOpen(false) }}
-              className={clsx('w-full text-left px-3 py-2 text-sm transition-colors', v === opt ? 'bg-teal-400/10 text-teal-600 font-medium' : 'text-black hover:bg-hover-gray-lm')}>
-              {opt}
-            </button>
-          ))}
+        <div className="mt-1 bg-white border border-nav-gray rounded-xl shadow-sm p-2.5">
+          <div className="flex flex-wrap gap-1.5">
+            {options.map(opt => (
+              <button key={opt} onClick={() => { setV(opt); setOpen(false) }}
+                className={clsx('px-3 py-1 rounded-full text-xs font-semibold border transition-all',
+                  v === opt ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500/8 text-indigo-500 border-indigo-500/25 hover:bg-indigo-500 hover:text-white'
+                )}>
+                {opt}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -189,19 +203,44 @@ function SelectInput({ options, placeholder = '— Select —' }: { options: str
 }
 
 function MultiSelectInput({ options }: { options: string[] }) {
+  const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const toggle = (opt: string) => setSelected(prev => { const n = new Set(prev); n.has(opt) ? n.delete(opt) : n.add(opt); return n })
+  const sel = Array.from(selected)
   return (
-    <div className="flex flex-wrap gap-2">
-      {options.map(opt => (
-        <button key={opt} onClick={() => toggle(opt)}
-          className={clsx('px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-            selected.has(opt) ? 'bg-teal-400/15 border-teal-400/40 text-teal-700' : 'bg-bg-gray-lm border-nav-gray text-std-gray-lm hover:border-teal-400/40 hover:text-teal-600'
-          )}>
-          {selected.has(opt) && <Check size={10} className="inline mr-1 mb-0.5" />}
-          {opt}
-        </button>
-      ))}
+    <div>
+      <button onClick={() => setOpen(o => !o)}
+        className={clsx('w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg text-sm transition-colors hover:border-teal-300 min-h-[38px]',
+          open ? 'border-indigo-500/40 ring-2 ring-indigo-500/10' : 'border-nav-gray'
+        )}>
+        <div className="flex-1 flex items-center gap-1 flex-wrap">
+          {sel.length === 0
+            ? <span className="text-std-gray-dm italic">— Select all that apply —</span>
+            : sel.map(s => (
+              <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500 text-white">
+                {s}
+                <button onClick={e => { e.stopPropagation(); toggle(s) }} className="hover:opacity-70 transition-opacity"><X size={10} /></button>
+              </span>
+            ))
+          }
+        </div>
+        <ChevronDown size={13} className={clsx('text-std-gray-lm transition-transform duration-150 flex-shrink-0 ml-2', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="mt-1 bg-white border border-nav-gray rounded-xl shadow-sm p-2.5">
+          <div className="flex flex-wrap gap-1.5">
+            {options.map(opt => (
+              <button key={opt} onClick={() => toggle(opt)}
+                className={clsx('px-3 py-1 rounded-full text-xs font-semibold border transition-all',
+                  selected.has(opt) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500/8 text-indigo-500 border-indigo-500/25 hover:bg-indigo-500 hover:text-white'
+                )}>
+                {selected.has(opt) && <Check size={9} className="inline mr-1 mb-0.5" />}
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -381,37 +420,32 @@ function SignatureInput() {
 // ─── Photo field types ─────────────────────────────────────────────────────────
 
 function PhotoField({ label, required }: { label: string; required?: boolean }) {
-  const [captured, setCaptured] = useState(false)
+  const [photos, setPhotos] = useState<string[]>([])
+  const add = () => setPhotos(p => [...p, `photo_${String(p.length + 1).padStart(3, '0')}.jpg`])
+  const remove = (i: number) => setPhotos(p => p.filter((_, idx) => idx !== i))
   return (
-    <div className={clsx('rounded-lg border', captured ? 'border-green-600/25 bg-green-600/[0.02]' : 'border-red-600/30 bg-red-600/[0.02]')}>
-      <div className="px-4 py-3 border-b border-nav-gray/30 flex items-center gap-2">
-        <div className={clsx('w-1 h-full min-h-[16px] rounded-full flex-shrink-0 self-stretch', captured ? 'bg-green-600/40' : 'bg-red-600/50')} />
-        <span className="text-sm font-semibold text-black">{label}</span>
-        {required && !captured && <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>}
-        {captured && <Check size={14} className="text-green-600 ml-auto" />}
-      </div>
-      <div className="p-4">
-        {captured ? (
-          <div className="relative rounded-lg overflow-hidden bg-bg-gray-lm border border-nav-gray h-40 flex items-center justify-center group cursor-pointer" onClick={() => setCaptured(false)}>
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-100/40 to-teal-200/20" />
-            <div className="relative text-center">
-              <FileImage size={32} className="text-teal-400/60 mx-auto mb-1" />
-              <p className="text-xs text-std-gray-lm">photo_001.jpg</p>
-            </div>
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-              <button className="p-2 rounded-full bg-white/90 shadow"><ZoomIn size={14} /></button>
-              <button className="p-2 rounded-full bg-white/90 shadow text-red-600"><Trash2 size={14} /></button>
-            </div>
+    <div className="space-y-2">
+      {photos.map((filename, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <div className="w-16 h-12 rounded-lg bg-bg-gray-lm border border-nav-gray flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0">
+            <Image size={18} className="text-std-gray-lm" />
           </div>
-        ) : (
-          <button onClick={() => setCaptured(true)}
-            className="w-full h-32 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-nav-gray hover:border-teal-400/60 hover:bg-teal-400/5 transition-colors text-std-gray-lm hover:text-teal-600">
-            <Camera size={24} />
-            <span className="text-sm font-medium">Tap to take photo</span>
-            <span className="text-xs text-std-gray-dm">or drag & drop</span>
-          </button>
-        )}
-      </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-blue-400 hover:underline cursor-pointer font-medium truncate">{filename}</p>
+            <button onClick={() => remove(i)} className="text-[11px] text-std-gray-lm hover:text-red-600 mt-0.5 flex items-center gap-1 transition-colors">
+              <Trash2 size={10} /> Remove
+            </button>
+          </div>
+        </div>
+      ))}
+      <button onClick={add}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-dashed border-nav-gray text-sm text-std-gray-lm hover:border-teal-400 hover:text-teal-400 hover:bg-teal-400/5 transition-colors">
+        <Camera size={14} />
+        {photos.length === 0
+          ? <span>{required ? 'Tap to take photo' : 'Tap to take photo'}</span>
+          : <span>Add another</span>
+        }
+      </button>
     </div>
   )
 }
@@ -483,6 +517,7 @@ export default function ComponentLibraryPage() {
     { id: 'buttons',      label: 'Buttons' },
     { id: 'badges',       label: 'Badges & Status' },
     { id: 'tables',       label: 'Tables' },
+    { id: 'qc-table',     label: 'QC Data Table' },
   ]
 
   function scrollTo(id: string) {
@@ -526,7 +561,7 @@ export default function ComponentLibraryPage() {
                   <FieldDemo label="Power Provider"><TextInput placeholder="Enter provider name…" value="Emepa" /></FieldDemo>
                 </DemoCard>
                 <DemoCard label="number">
-                  <FieldDemo label="Road Width"><NumberInput placeholder="0" unit="ft" /></FieldDemo>
+                  <FieldDemo label="Road Width"><NumberInput unit="ft" /></FieldDemo>
                 </DemoCard>
                 <DemoCard label="textarea">
                   <FieldDemo label="Description"><TextareaInput /></FieldDemo>
@@ -887,6 +922,52 @@ export default function ComponentLibraryPage() {
               <Info size={24} className="mx-auto mb-3 text-nav-gray" />
               <p className="text-sm font-medium text-black">No records found</p>
               <p className="text-xs text-std-gray-lm mt-1">Try adjusting your filters or search query.</p>
+            </div>
+          </Section>
+
+          {/* ── QC Data Table ── */}
+          <Section id="qc-table" title="QC Data Table" description="Blue-header table for deeply nested QC data, e.g. Guy Facilities wire entries.">
+            <div className="bg-white rounded-xl border border-nav-gray overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[640px]">
+                  <thead>
+                    <tr className="bg-[#4a86c8]">
+                      {['Level', 'Pos.', 'Size (# Strands)', 'Strength Rating', 'Preform Color', 'Measured Tension (lbf)', 'Notes', ''].map((h, i) => (
+                        <th key={i} className={clsx('text-left text-xs font-bold text-white px-4 py-2.5', i === 7 && 'w-24')}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-nav-gray/40 bg-white">
+                    {[
+                      { level: '1', pos: 'R', size: '7/8" (1-19)', rating: 'EHS', color: 'Green', tension: '8160', notes: '' },
+                      { level: '1', pos: 'L', size: '7/8" (1-19)', rating: 'EHS', color: 'Green', tension: '8460', notes: '' },
+                      { level: '2', pos: 'R', size: '7/8" (1-19)', rating: 'EHS', color: 'Green', tension: '9240', notes: 'Exceeds limit' },
+                    ].map((row, i) => (
+                      <tr key={i} className="hover:bg-hover-gray-lm/50 transition-colors">
+                        <td className="px-4 py-2.5 text-sm text-black font-medium">{row.level}</td>
+                        <td className="px-4 py-2.5 text-sm text-black">{row.pos}</td>
+                        <td className="px-4 py-2.5 text-sm text-black">{row.size}</td>
+                        <td className="px-4 py-2.5 text-sm text-black">{row.rating}</td>
+                        <td className="px-4 py-2.5 text-sm text-black">{row.color}</td>
+                        <td className="px-4 py-2.5 text-sm text-black font-mono">{row.tension}</td>
+                        <td className="px-4 py-2.5 text-sm text-std-gray-lm italic">{row.notes || '—'}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-1 justify-end">
+                            <button className="p-1.5 rounded border border-nav-gray text-std-gray-lm hover:text-red-600 hover:bg-red-600/8 hover:border-red-600/30 transition-colors"><Flag size={11} /></button>
+                            <button className="p-1.5 rounded border border-indigo-300/60 bg-indigo-500/8 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-colors"><Check size={11} /></button>
+                            <button className="p-1.5 rounded border border-nav-gray text-std-gray-lm hover:text-red-600 hover:bg-red-600/8 hover:border-red-600/30 transition-colors"><Minus size={11} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-5 py-2.5 border-t border-nav-gray/40 flex justify-end bg-white">
+                <button className="flex items-center gap-1.5 text-xs font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">
+                  <Plus size={12} /> Add Row
+                </button>
+              </div>
             </div>
           </Section>
 

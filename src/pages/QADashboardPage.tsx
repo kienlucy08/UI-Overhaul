@@ -10,6 +10,7 @@ import {
   mockDashboardScans,
   mockDashboardSiteVisits,
   mockSitesList,
+  type SurveyType,
 } from '../data/mockData'
 import clsx from 'clsx'
 
@@ -33,6 +34,20 @@ const statusConfig: Record<string, { bg: string; text: string; border: string }>
   'inactive':    { bg: 'bg-bg-gray-lm',    text: 'text-std-gray-lm',  border: 'border-nav-gray' },
 }
 
+
+const surveyTypeConfig: Record<SurveyType, { bg: string; text: string; border: string }> = {
+  'Compound':        { bg: 'bg-teal-400/10',    text: 'text-teal-600',    border: 'border-teal-400/30' },
+  'Structure Climb': { bg: 'bg-blue-500/10',    text: 'text-blue-600',    border: 'border-blue-500/30' },
+  'Structure Flight':{ bg: 'bg-indigo-500/10',  text: 'text-indigo-600',  border: 'border-indigo-500/30' },
+  'Service COP':     { bg: 'bg-amber-500/10',   text: 'text-amber-600',   border: 'border-amber-500/30' },
+  'Plumb & Twist':   { bg: 'bg-purple-500/10',  text: 'text-purple-600',  border: 'border-purple-500/30' },
+  'Guy Facilities':  { bg: 'bg-green-600/10',   text: 'text-green-700',   border: 'border-green-600/30' },
+}
+
+function SurveyTypeBadge({ type }: { type: SurveyType }) {
+  const cfg = surveyTypeConfig[type]
+  return <span className={clsx('badge border text-xs', cfg.bg, cfg.text, cfg.border)}>{type}</span>
+}
 
 type MenuItem = { label: string; icon: React.ReactNode; onClick: () => void; danger?: boolean }
 
@@ -74,7 +89,9 @@ function SortHeader({ label, field, sortField, sortDir, onSort }: {
 
 function RowMenu({ items }: { items: MenuItem[] }) {
   const [open, setOpen] = useState(false)
+  const [openUp, setOpenUp] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -85,16 +102,27 @@ function RowMenu({ items }: { items: MenuItem[] }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  function handleOpen(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      const estimatedHeight = 44 + items.length * 36
+      setOpenUp(rect.bottom + estimatedHeight > window.innerHeight - 16)
+    }
+    setOpen(o => !o)
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
+        ref={btnRef}
+        onClick={handleOpen}
         className="p-1.5 rounded-lg text-std-gray-lm hover:bg-bg-gray-lm hover:text-black transition-colors"
       >
         <MoreHorizontal size={15} />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-50 bg-white border border-nav-gray rounded-xl shadow-lg py-1.5 min-w-[190px]">
+        <div className={clsx('absolute right-0 z-50 bg-white border border-nav-gray rounded-xl shadow-lg py-1.5 min-w-[190px]', openUp ? 'bottom-8' : 'top-8')}>
           <p className="px-3 pb-1 pt-0.5 text-xs font-semibold text-std-gray-lm uppercase tracking-wide">Actions</p>
           {items.map(item => (
             <button
@@ -176,7 +204,7 @@ export default function QADashboardPage() {
   }))
 
   // Shared bulk actions bar content
-  const bulkBar = (showAddToVisit = false) => (
+  const bulkBar = () => (
     <div className="ml-auto flex items-center gap-2">
       {selected.size > 0 && (
         <>
@@ -187,25 +215,6 @@ export default function QADashboardPage() {
             <Trash2 size={13} /> Delete ({selected.size})
           </button>
         </>
-      )}
-      {showAddToVisit && (
-        <button
-          disabled={selected.size === 0}
-          className={clsx(
-            'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors',
-            selected.size > 0
-              ? 'border-teal-400/40 bg-teal-400/10 text-teal-600 hover:bg-teal-400/20 cursor-pointer'
-              : 'border-nav-gray text-std-gray-dm bg-white cursor-not-allowed opacity-50'
-          )}
-        >
-          <CalendarDays size={13} />
-          Add to Site Visit
-          {selected.size > 0 && (
-            <span className="ml-0.5 bg-teal-400 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-              {selected.size}
-            </span>
-          )}
-        </button>
       )}
     </div>
   )
@@ -247,7 +256,7 @@ export default function QADashboardPage() {
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter..."
                   className="bg-transparent text-sm text-black placeholder-std-gray-lm outline-none w-full" />
               </div>
-              {bulkBar(true)}
+              {bulkBar()}
             </div>
             <table className="w-full">
               <thead>
@@ -255,7 +264,7 @@ export default function QADashboardPage() {
                   <th className="w-10 px-5 py-3">
                     <TableCheckbox checked={selected.size === filteredSurveys.length && filteredSurveys.length > 0} onChange={() => toggleSelectAll(filteredSurveys.map(s => s.id))} />
                   </th>
-                  <th className="px-3 py-3 text-left"><SortHeader label="Name"      field="name"     sortField={sortField} sortDir={sortDir} onSort={toggleSort} /></th>
+                  <th className="px-3 py-3 text-left"><SortHeader label="Survey"    field="type"     sortField={sortField} sortDir={sortDir} onSort={toggleSort} /></th>
                   <th className="px-3 py-3 text-left"><SortHeader label="Site ID"   field="siteId"   sortField={sortField} sortDir={sortDir} onSort={toggleSort} /></th>
                   <th className="px-3 py-3 text-left"><SortHeader label="Site Name" field="siteName" sortField={sortField} sortDir={sortDir} onSort={toggleSort} /></th>
                   <th className="px-3 py-3 text-left"><SortHeader label="Created"   field="created"  sortField={sortField} sortDir={sortDir} onSort={toggleSort} /></th>
@@ -267,10 +276,7 @@ export default function QADashboardPage() {
                 {filteredSurveys.map(survey => (
                   <tr key={survey.id} className={clsx('group hover:bg-hover-gray-lm transition-colors', selected.has(survey.id) && 'bg-teal-100/20')}>
                     <td className="px-5 py-3.5"><TableCheckbox checked={selected.has(survey.id)} onChange={() => toggleSelect(survey.id)} /></td>
-                    <td className="px-3 py-3.5">
-                      <p className="text-sm font-medium text-black">{survey.name}</p>
-                      <p className="text-xs text-std-gray-lm">{survey.scope}</p>
-                    </td>
+                    <td className="px-3 py-3.5"><SurveyTypeBadge type={survey.type} /></td>
                     <td className="px-3 py-3.5"><span className="text-sm text-std-gray-lm font-mono">{survey.siteId || '—'}</span></td>
                     <td className="px-3 py-3.5"><span className="text-sm text-black">{survey.siteName}</span></td>
                     <td className="px-3 py-3.5"><span className="text-sm text-std-gray-lm">{survey.created}</span></td>
@@ -285,6 +291,7 @@ export default function QADashboardPage() {
                         </button>
                         <RowMenu items={[
                           { label: 'Open QC Editor',     icon: <ArrowUpRight size={14} />, onClick: () => navigate(`/surveys/${survey.id}/qc`) },
+                          { label: 'Add to Site Visit',  icon: <CalendarDays size={14} />, onClick: () => {} },
                           { label: 'Download JSON',       icon: <Download size={14} />,     onClick: () => {} },
                           { label: 'Create Image Export', icon: <FileImage size={14} />,    onClick: () => {} },
                           { label: 'Delete Survey',       icon: <Trash2 size={14} />,       onClick: () => {}, danger: true },

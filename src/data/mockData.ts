@@ -73,7 +73,7 @@ export const mockSiteVisit = {
   attachments: [],
   scans: [],
   surveys: [
-    { id: 'survey_001', name: 'TEST Compound Inspection', type: 'Compound Inspection', status: 'In Progress', completedFields: 8, totalFields: 20 },
+    { id: 'survey_001', name: 'Compound Inspection', type: 'Compound Inspection', status: 'In Progress', completedFields: 8, totalFields: 20 },
     { id: 'survey_002', name: 'TEST Structure Inspection', type: 'Structure Inspection', status: 'Completed', completedFields: 24, totalFields: 24 },
     { id: 'survey_003', name: 'Antennae Survey', type: 'Antenna Survey', status: 'In Progress', completedFields: 12, totalFields: 30 },
     { id: 'survey_004', name: 'Close-out Package', type: 'Close-out', status: 'Not Started', completedFields: 0, totalFields: 15 },
@@ -129,7 +129,7 @@ export type SurveySection = {
 
 export const mockSurvey = {
   id: 'survey_001',
-  name: 'TEST Compound Inspection',
+  name: 'Compound Inspection',
   siteId: 'TX6100',
   siteName: 'Orange - Claybar',
   surveyType: 'Compound Inspection',
@@ -337,16 +337,16 @@ export const mockSurvey = {
           subItems: {
             groupLabel: 'Feedlines',
             items: [
-              { id: 'fl_01', label: '5/8" — 2 count', fields: [
-                { id: 'fl_01_num', label: 'Count', value: '2', type: 'number', required: true, marked: false, flagged: false },
-                { id: 'fl_01_size', label: 'Size', value: '5/8"', type: 'text', required: true, marked: false, flagged: false },
+              { id: 'fl_01', label: '7/8" — 6 count', fields: [
+                { id: 'fl_01_num', label: 'Count', value: '6', type: 'number', required: true, marked: false, flagged: false },
+                { id: 'fl_01_size', label: 'Size', value: '7/8"', type: 'text', required: true, marked: false, flagged: false },
               ] as SurveyField[] },
-              { id: 'fl_02', label: '9/16" — 8 count', fields: [
-                { id: 'fl_02_num', label: 'Count', value: '8', type: 'number', required: true, marked: false, flagged: false },
-                { id: 'fl_02_size', label: 'Size', value: '9/16"', type: 'text', required: true, marked: false, flagged: false },
+              { id: 'fl_02', label: '1/2" — 3 count', fields: [
+                { id: 'fl_02_num', label: 'Count', value: '3', type: 'number', required: true, marked: false, flagged: false },
+                { id: 'fl_02_size', label: 'Size', value: '1/2"', type: 'text', required: true, marked: false, flagged: false },
               ] as SurveyField[] },
-              { id: 'fl_03', label: '1/4" — 15 count', fields: [
-                { id: 'fl_03_num', label: 'Count', value: '15', type: 'number', required: true, marked: false, flagged: false },
+              { id: 'fl_03', label: '1/4" — 4 count', fields: [
+                { id: 'fl_03_num', label: 'Count', value: '4', type: 'number', required: true, marked: false, flagged: false },
                 { id: 'fl_03_size', label: 'Size', value: '1/4"', type: 'text', required: true, marked: false, flagged: false },
               ] as SurveyField[] },
             ],
@@ -376,9 +376,17 @@ export const mockSurvey = {
           subItems: {
             groupLabel: 'Feedlines',
             items: [
-              { id: 'fl_vz_01', label: '7/8" — 4 count', fields: [
-                { id: 'fl_vz_01_num', label: 'Count', value: '4', type: 'number', required: true, marked: false, flagged: false },
-                { id: 'fl_vz_01_size', label: 'Size', value: '7/8"', type: 'text', required: true, marked: false, flagged: false },
+              { id: 'fl_vz_01', label: '1-5/8" — 2 count', fields: [
+                { id: 'fl_vz_01_num', label: 'Count', value: '2', type: 'number', required: true, marked: false, flagged: false },
+                { id: 'fl_vz_01_size', label: 'Size', value: '1-5/8"', type: 'text', required: true, marked: false, flagged: false },
+              ] as SurveyField[] },
+              { id: 'fl_vz_02', label: '7/8" — 4 count', fields: [
+                { id: 'fl_vz_02_num', label: 'Count', value: '4', type: 'number', required: true, marked: false, flagged: false },
+                { id: 'fl_vz_02_size', label: 'Size', value: '7/8"', type: 'text', required: true, marked: false, flagged: false },
+              ] as SurveyField[] },
+              { id: 'fl_vz_03', label: '1/2" — 6 count', fields: [
+                { id: 'fl_vz_03_num', label: 'Count', value: '6', type: 'number', required: true, marked: false, flagged: false },
+                { id: 'fl_vz_03_size', label: 'Size', value: '1/2"', type: 'text', required: true, marked: false, flagged: false },
               ] as SurveyField[] },
             ],
           },
@@ -416,17 +424,15 @@ export const mockSurvey = {
 }
 
 // ─── QA Dashboard ─────────────────────────────────────────────────────────────
+export type SurveyType = 'Compound' | 'Structure Climb' | 'Structure Flight' | 'Service COP' | 'Plumb & Twist' | 'Guy Facilities'
+
 export const mockDashboardSurveys = [
-  { id: 'survey_001', name: 'TEST Compound Inspection',  siteId: 'TX6100', siteName: 'Orange - Claybar',       created: 'Mar 5, 2025 12:17 PM',  status: 'In Progress', scope: 'Compound Inspection' },
-  { id: 'survey_005', name: 'Compound Inspection [QA]',  siteId: '21150',  siteName: 'White Cloud',             created: 'Mar 19, 2025 1:19 PM',  status: 'QA Review',   scope: 'Compound Inspection' },
-  { id: 'survey_006', name: 'Compound Inspection [QA]',  siteId: 'NH0049', siteName: 'Stratford',               created: 'Mar 3, 2025 10:25 AM',  status: 'QA Review',   scope: 'Compound Inspection' },
-  { id: 'survey_007', name: 'Compound Inspection',       siteId: 'MS6112', siteName: 'Porterville Minniece',    created: 'Mar 19, 2025 10:08 AM', status: 'Submitted',   scope: 'Compound Inspection' },
-  { id: 'survey_008', name: 'Compound Inspection',       siteId: 'MS6103', siteName: 'Lumberton Soterra',       created: 'Jul 16, 2025 1:22 PM',  status: 'Submitted',   scope: 'Compound Inspection' },
-  { id: 'survey_009', name: 'Structure Climb Inspection',siteId: '10285',  siteName: 'Waynesville',             created: 'Jun 16, 2025 11:08 AM', status: 'In Progress', scope: 'Structure Inspection' },
-  { id: 'survey_010', name: 'Structure Inspection [QA]', siteId: '21272',  siteName: 'Cosmosphere',             created: 'Mar 2, 2025 3:05 PM',   status: 'QA Review',   scope: 'Structure Inspection' },
-  { id: 'survey_011', name: 'Plumb & Twist [QA]',        siteId: '12025',  siteName: 'Gary',                    created: 'Mar 12, 2025 1:03 PM',  status: 'QA Review',   scope: 'Plumb & Twist' },
-  { id: 'survey_012', name: 'Plumb & Twist',             siteId: 'MS6105', siteName: 'Magnolia South Pike',     created: 'Mar 5, 2025 12:17 PM',  status: 'Submitted',   scope: 'Plumb & Twist' },
-  { id: 'survey_013', name: 'COP',                       siteId: '',       siteName: 'Party',                   created: 'Sep 29, 2025 9:11 AM',  status: 'Not Started', scope: 'Close-out Package' },
+  { id: 'survey_001',    name: 'Compound Survey',     siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:17 PM',  status: 'In Progress', type: 'Compound'        as SurveyType },
+  { id: 'survey_climb',  name: 'Structure Climb',     siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:18 PM',  status: 'Not Started', type: 'Structure Climb' as SurveyType },
+  { id: 'survey_flight', name: 'Structure Flight',    siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:19 PM',  status: 'Not Started', type: 'Structure Flight' as SurveyType },
+  { id: 'survey_cop',    name: 'Service COP',         siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:20 PM',  status: 'In Progress', type: 'Service COP'     as SurveyType },
+  { id: 'survey_pt',     name: 'Plumb & Twist',       siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:21 PM',  status: 'In Progress', type: 'Plumb & Twist'   as SurveyType },
+  { id: 'survey_guy',    name: 'Guy Facilities',      siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:22 PM',  status: 'In Progress', type: 'Guy Facilities'  as SurveyType },
 ]
 
 export const mockDashboardScans = [

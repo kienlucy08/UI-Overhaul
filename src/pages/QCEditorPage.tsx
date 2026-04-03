@@ -299,8 +299,8 @@ export default function QCEditorPage() {
             <ArrowLeft size={15} />
           </button>
           <div className="h-5 w-px bg-nav-gray mx-2 flex-shrink-0" />
-          <div className="flex items-center gap-2 min-w-0 flex-shrink-0 max-w-[140px] lg:max-w-[240px]">
-            <h1 className="text-sm font-bold text-black truncate">{mockSurvey.name}</h1>
+          <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
+            <h1 className="text-sm font-bold text-black">{mockSurvey.name}</h1>
             <span className="hidden lg:inline-flex badge bg-amber-500/10 text-amber-600 border border-amber-500/30 text-[10px] flex-shrink-0 py-0.5">In Progress</span>
           </div>
 
@@ -595,7 +595,30 @@ export default function QCEditorPage() {
 
               {/* Field content */}
               <div className="flex-1 overflow-y-auto bg-bg-gray-lm/50">
-                <div className="px-6 py-5">
+                <div className="px-6 py-5 space-y-4">
+                  {/* Site Information — shown on first section */}
+                  {activeSectionIdx === 0 && !activeItemId && (
+                    <div className="rounded-xl border border-nav-gray bg-white overflow-hidden">
+                      <div className="px-5 py-3 border-b border-nav-gray/40 bg-bg-gray-lm/40">
+                        <p className="text-[10px] font-bold text-std-gray-lm uppercase tracking-widest">Site Information</p>
+                      </div>
+                      <div className="px-5 py-4 grid grid-cols-2 gap-x-8 gap-y-4">
+                        {([
+                          ['Site Name',   mockSurvey.siteName],
+                          ['Site ID',     mockSurvey.siteId],
+                          ['Survey Type', mockSurvey.surveyType],
+                          ['Customer',    mockSurvey.customer],
+                          ['Technician',  mockSurvey.technicianName],
+                          ['Coordinates', mockSurvey.coordinates],
+                        ] as [string, string][]).map(([label, value]) => (
+                          <div key={label}>
+                            <p className="text-[10px] font-bold text-std-gray-lm uppercase tracking-wide">{label}</p>
+                            <p className="text-sm text-black mt-0.5">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {sTotal === 0 && (!activeSection.items || activeSection.items.length === 0) ? (
                     <div className="card border-dashed border-nav-gray py-16 text-center">
                       <p className="text-std-gray-lm text-sm font-medium">No items in this section</p>
@@ -629,33 +652,11 @@ export default function QCEditorPage() {
                             ))}
                           </div>
                           {item.subItems && (
-                            <div className="card overflow-hidden">
-                              <div className="flex items-center justify-between px-6 py-4 border-b border-nav-gray">
-                                <h3 className="text-sm font-semibold text-black">{item.subItems.groupLabel}<span className="ml-2 text-std-gray-lm font-normal">({item.subItems.items.length})</span></h3>
-                                <button className="btn-primary text-xs px-2.5 py-1.5"><Plus size={12} /> Add {singularize(item.subItems.groupLabel)}</button>
-                              </div>
-                              <div className="divide-y divide-nav-gray/60">
-                                {item.subItems.items.map(sub => {
-                                  const isCollapsed = collapsedSubItems.has(sub.id)
-                                  return (
-                                    <div key={sub.id}>
-                                      <div className={clsx('flex items-center justify-between px-6 py-3 cursor-pointer transition-colors', isCollapsed ? 'hover:bg-hover-gray-lm' : 'bg-hover-gray-lm/40')} onClick={() => toggleSubItem(sub.id)}>
-                                        <div className="flex items-center gap-2">
-                                          <ChevronRight size={13} className={clsx('text-std-gray-lm transition-transform duration-200', !isCollapsed && 'rotate-90')} />
-                                          <span className="text-sm font-medium text-black">{sub.label}</span>
-                                        </div>
-                                        <button className="p-1.5 rounded-full hover:bg-red-600/10 text-std-gray-lm hover:text-red-600 transition-colors border border-nav-gray" onClick={e => e.stopPropagation()}><Minus size={12} /></button>
-                                      </div>
-                                      {!isCollapsed && (
-                                        <div className="border-t border-nav-gray/40">
-                                          {sub.fields.map(f => <FieldRow key={f.id} field={f} onUpdate={updateField} nested />)}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
+                            <FeedlineTable
+                              carrierName={item.label}
+                              initialItems={item.subItems.items}
+                              onUpdateField={updateField}
+                            />
                           )}
                         </div>
                       )
@@ -1244,10 +1245,39 @@ function FieldRow({
                 className={clsx('w-full px-3 py-2.5 text-sm bg-transparent focus:outline-none resize-none', field.marked && 'opacity-60 cursor-not-allowed')} />
               <div className="flex justify-end items-center px-3 py-1.5 border-t border-nav-gray/40">{actionButtons}</div>
             </div>
+          ) : field.type === 'number' ? (
+            <div className={clsx(boxBase, !field.marked && focusRing)}>
+              <div className="flex items-center gap-1 px-2 py-1.5">
+                <button
+                  onClick={() => { const n = (Number(localText) || 0) - 1; const s = String(n); setLocalText(s); onUpdate(field.id, { value: s }) }}
+                  disabled={field.marked}
+                  className="p-1.5 rounded-lg hover:bg-hover-gray-lm text-std-gray-lm hover:text-black transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Minus size={14} />
+                </button>
+                <input
+                  type="number" value={localText}
+                  onChange={e => setLocalText(e.target.value)}
+                  onBlur={e => onUpdate(field.id, { value: e.target.value || null })}
+                  onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                  disabled={field.marked} placeholder="0"
+                  className={clsx('flex-1 min-w-0 text-sm bg-transparent focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none', field.marked && 'opacity-60 cursor-not-allowed')}
+                />
+                <button
+                  onClick={() => { const n = (Number(localText) || 0) + 1; const s = String(n); setLocalText(s); onUpdate(field.id, { value: s }) }}
+                  disabled={field.marked}
+                  className="p-1.5 rounded-lg hover:bg-hover-gray-lm text-std-gray-lm hover:text-black transition-colors flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Plus size={14} />
+                </button>
+                <div className="w-px h-4 bg-nav-gray mx-1 flex-shrink-0" />
+                <div onClick={e => e.stopPropagation()}>{actionButtons}</div>
+              </div>
+            </div>
           ) : (
             <div className={clsx(boxBase, !field.marked && focusRing)}>
               <div className="flex items-center gap-3 px-3 py-2">
-                <input type={field.type === 'number' ? 'number' : 'text'} value={localText}
+                <input type="text" value={localText}
                   onChange={e => setLocalText(e.target.value)} onBlur={e => onUpdate(field.id, { value: e.target.value || null })}
                   onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
                   disabled={field.marked} placeholder="Enter value…"
@@ -1287,9 +1317,148 @@ function YesNoField({ field, onUpdate }: { field: SurveyField; onUpdate: (id: st
   const val = field.value
   return (
     <div className="flex items-center gap-1.5">
-      <button onClick={() => onUpdate(field.id, { value: val === 'Yes' ? null : 'Yes' })} className={clsx('px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-all', val === 'Yes' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-std-gray-lm border-nav-gray hover:border-std-gray-lm')}>Yes</button>
-      <button onClick={() => onUpdate(field.id, { value: val === 'No' ? null : 'No' })} className={clsx('px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-all', val === 'No' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-std-gray-lm border-nav-gray hover:border-std-gray-lm')}>No</button>
+      <button
+        onClick={() => onUpdate(field.id, { value: val === 'Yes' ? null : 'Yes' })}
+        className={clsx('px-5 py-1.5 rounded-full text-sm font-semibold border-2 transition-all',
+          val === 'Yes' ? 'bg-indigo-500 text-white border-indigo-500 shadow-sm' : 'bg-white text-std-gray-lm border-nav-gray hover:border-indigo-400/50 hover:text-indigo-600'
+        )}
+      >Yes</button>
+      <button
+        onClick={() => onUpdate(field.id, { value: val === 'No' ? null : 'No' })}
+        className={clsx('px-5 py-1.5 rounded-full text-sm font-semibold border-2 transition-all',
+          val === 'No' ? 'bg-indigo-500 text-white border-indigo-500 shadow-sm' : 'bg-white text-std-gray-lm border-nav-gray hover:border-indigo-400/50 hover:text-indigo-600'
+        )}
+      >No</button>
       {val && <button onClick={() => onUpdate(field.id, { value: null })} className="p-1 rounded-full hover:bg-hover-gray-lm text-std-gray-dm hover:text-std-gray-lm transition-colors"><X size={13} /></button>}
+    </div>
+  )
+}
+
+type FeedlineRow = { id: string; size: string; count: string; isNew?: boolean }
+
+function FeedlineTable({
+  carrierName,
+  initialItems,
+  onUpdateField,
+}: {
+  carrierName: string
+  initialItems: Array<{ id: string; fields: SurveyField[] }>
+  onUpdateField: (id: string, p: Partial<SurveyField>) => void
+}) {
+  const [rows, setRows] = useState<FeedlineRow[]>(() =>
+    initialItems.map(sub => ({
+      id: sub.id,
+      size: sub.fields.find(f => f.label === 'Size')?.value ?? '',
+      count: sub.fields.find(f => f.label === 'Count')?.value ?? '',
+    }))
+  )
+
+  const updateRow = (id: string, col: 'size' | 'count', value: string) => {
+    setRows(r => r.map(row => row.id === id ? { ...row, [col]: value } : row))
+    const origItem = initialItems.find(sub => sub.id === id)
+    if (origItem) {
+      const origField = origItem.fields.find(f => f.label === (col === 'size' ? 'Size' : 'Count'))
+      if (origField) onUpdateField(origField.id, { value: value || null })
+    }
+  }
+
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const addRow = () => setRows(r => [...r, { id: `fl_new_${Date.now()}`, size: '', count: '', isNew: true }])
+  const confirmRemove = (id: string) => { setRows(r => r.filter(row => row.id !== id)); setPendingDeleteId(null) }
+
+  return (
+    <div className="rounded-xl border border-nav-gray overflow-hidden">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-[#4a86c8]">
+            <th className="text-left text-xs font-bold text-white px-4 py-2.5 w-1/2">
+              <div className="flex items-center gap-2">
+                <span>Size (Ø, in)</span>
+                <span className="ml-auto text-[11px] text-white/50 font-normal">{rows.length} feedline{rows.length !== 1 ? 's' : ''}</span>
+              </div>
+            </th>
+            <th className="text-left text-xs font-bold text-white px-4 py-2.5 w-1/2">Count</th>
+            <th className="bg-[#4a86c8] w-10" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-nav-gray/40 bg-white">
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={3} className="px-4 py-5 text-center text-sm text-std-gray-dm italic">
+                No feedlines recorded
+              </td>
+            </tr>
+          ) : rows.map((row) => {
+            const isPendingDelete = pendingDeleteId === row.id
+            return (
+              <tr key={row.id} className={clsx('group transition-colors', isPendingDelete ? 'bg-red-600/5' : 'hover:bg-hover-gray-lm')}>
+                <td className={clsx('px-4 py-2.5 text-left', isPendingDelete && 'bg-red-600/5')}>
+                  {isPendingDelete ? (
+                    <span className="text-sm font-semibold text-red-600">Remove {row.size || '—'}?</span>
+                  ) : (
+                    <input
+                      type="text"
+                      value={row.size}
+                      onChange={e => updateRow(row.id, 'size', e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                      autoFocus={row.isNew}
+                      className="w-full text-sm text-black bg-transparent outline-none focus:bg-teal-400/5 focus:ring-1 focus:ring-teal-400/40 rounded px-1 py-0.5 transition-colors"
+                      placeholder="—"
+                    />
+                  )}
+                </td>
+                <td className={clsx('px-4 py-2.5 text-left', isPendingDelete && 'bg-red-600/5')}>
+                  {isPendingDelete ? (
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => confirmRemove(row.id)}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+                      >
+                        Remove
+                      </button>
+                      <button
+                        onClick={() => setPendingDeleteId(null)}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-nav-gray text-std-gray-lm hover:bg-hover-gray-lm transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="number"
+                      value={row.count}
+                      onChange={e => updateRow(row.id, 'count', e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                      className="w-full text-sm text-black bg-transparent outline-none focus:bg-teal-400/5 focus:ring-1 focus:ring-teal-400/40 rounded px-1 py-0.5 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none transition-colors"
+                      placeholder="0"
+                    />
+                  )}
+                </td>
+                <td className={clsx('text-center w-10', isPendingDelete && 'bg-red-600/5')}>
+                  {!isPendingDelete && (
+                    <button
+                      onClick={() => setPendingDeleteId(row.id)}
+                      className="p-1.5 rounded-lg text-std-gray-dm opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-600/8 transition-all mx-auto"
+                      title="Remove feedline"
+                    >
+                      <Minus size={12} />
+                    </button>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colSpan={3} className="px-4 py-2.5 border-t border-nav-gray/40">
+              <button onClick={addRow} className="flex items-center gap-1.5 text-xs font-semibold text-indigo-500 hover:text-indigo-600 transition-colors">
+                <Plus size={12} /> Add Feedline
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   )
 }
