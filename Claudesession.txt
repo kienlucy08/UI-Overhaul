@@ -3533,3 +3533,768 @@ Built from scratch based on screenshots of the old dark Service COP UI.
 All changes pass `npx tsc --noEmit` with zero errors.
 Done — appended Session 2 to sessio.txt, preserving the existing Session 1 content above it.
 
+Session 3
+
+c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\Claudesession.txt
+make the sitesummarypage.txt and he sitevisitpage.txt have the same layout and use the same components just for what they are trying to display. additionally add attachments as an items of interest for both site summary and site visit pages
+Let me read the relevant files first.
+
+Globpattern: "**/*.txt"
+Found 7 files
+Globpattern: "src/**/*.{tsx,jsx,ts,js}"
+Found 14 files
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteSummaryPage.tsx
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx
+Now let me read the mock data and session context.
+
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\Claudesession.txt
+Write c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\components\SectionCard.tsx
+64 lines
+Now update the mock data to add attachments to both:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts
+Added 4 lines
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts
+Added 3 lines
+Now rewrite SiteSummaryPage.tsx to use the shared component and add Attachments:
+
+Write c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteSummaryPage.tsx
+227 lines
+Now rewrite SiteVisitPage.tsx to use the shared components and render actual attachments:
+
+Write c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx
+325 lines
+Let me verify it builds cleanly:
+
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+No type errors. Here's what changed:
+
+Shared component — src/components/SectionCard.tsx
+
+SectionCard: unified header (icon + title + count + optional action slot), used by both pages
+AttachmentRow: reusable attachment list item with file extension badge, name, size, date, and hover-reveal download button
+SiteSummaryPage.tsx
+
+Imports SectionCard + AttachmentRow from the shared component
+Removed local SectionCard definition
+onAdd buttons converted to action={<button>} prop
+Added Attachments section card (5th card in the grid)
+Stat bar updated to 6 columns: Structures, Compounds, Site Visits, Scans, Attachments, Reports
+SiteVisitPage.tsx
+
+Imports SectionCard + AttachmentRow from the shared component
+Removed local SectionCard definition
+Attachments section now renders actual attachment rows (was just a dashed "add" button)
+Scans empty state uses the same dashed-border + icon pattern as JSA Report
+mockData.ts
+
+mockSiteSummary.attachments: 2 mock files (Site Overview.jpg, Access Road Documentation.pdf)
+mockSiteVisit.attachments: 2 mock files (Pre-climb JSA Form.pdf, Glamour Shot.jpg)
+i need to be able to scroll there is no ability to scroll on the site summary and site visit summary page when there is overflow
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\components\Layout.tsx
+The issue is on line 224 — <main className="flex-1 overflow-hidden">. It's hiding overflow instead of allowing scroll.
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\components\Layout.tsx
+Modified
+overflow-hidden → overflow-y-auto on the <main> element in Layout.tsx:224. That was blocking all vertical scroll across every page.
+
+
+image.png
+1018×946
+attachments need to be added to the sitesummarypage additionally make the cards on the sitevisitpage have a white backgroud and not be clear
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteSummaryPage.tsx (lines 91-120)
+Grep "rounded-lg border border-nav-gray p-4" (in c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx)
+5 lines of output
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteSummaryPage.tsx (lines 156-185)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteSummaryPage.tsx (lines 185-224)
+Attachments are already in the SiteSummaryPage code — the user may need to refresh. Now fixing the transparent field group cards on SiteVisitPage by adding bg-white:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx
+Edit failed
+Grep "border-nav-gray p-4" (in c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx)
+5 lines of output
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx
+Modified
+All 5 field group cards (Site & Job, Location, Site Conditions, Contributors, Close-out Package) now have bg-white.
+
+The Attachments section was already wired up in SiteSummaryPage from the previous session — if it's not appearing, a hard refresh (Ctrl+Shift+R) should pick it up.
+
+
+image.png
+1245×718
+
+image.png
+1006×609
+we dont need the close out section because this is an inspection site visit not a close out package they are different scope of work: inpsection sites have the structure top level information instead like: change the scope of work to inspection which includes the compound guy facilities structure and plumb and twist surveys for an inspection
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts (lines 52-81)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts (lines 81-95)
+Now I have the full picture. Two changes needed:
+
+mockData.ts — swap out closeOutPackage for structure, update scopeOfWork and surveys:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts
+Added 2 lines
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\data\mockData.ts
+Modified
+Now update SiteVisitPage.tsx — replace the Close-out Package card with a Structure card:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx
+Added 2 lines
+Now fix the import — TowerControl isn't imported yet in SiteVisitPage:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteVisitPage.tsx
+Modified
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+Clean. Here's what changed:
+
+mockData.ts
+
+scopeOfWork → 'Inspection'
+Replaced closeOutPackage with structure: Structure Type (Guyed), Legs (3), Guy Attachments (9), Elevations, Guy Anchor Compounds (6), Lighting (Yes)
+Surveys updated to: Compound Inspection, Structure Inspection, Guy Facilities, Plumb & Twist
+SiteVisitPage.tsx
+
+Replaced the Close-out Package field group card with a Structure card using the tower icon and same FieldRow pattern
+Added TowerControl to imports
+
+image.png
+477×234
+i want to use the same components on the componets page and all the other qc editor pages for fields when they have a reviewed status. I want the field to appear green when the check mark is marked similar to how when the field is flagged the field is highlighted red. I want this to be uniform across all pages
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\QCEditorPage.tsx
+Globpattern: "src/pages/*QC*.tsx"
+Found 4 files
+Bash
+IN
+grep -n "marked\|flagged\|reviewed\|green\|red\|bg-red\|bg-green\|FieldRow\|field-row\|CheckCircle\|Flag" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\QCEditorPage.tsx" | head -80
+
+OUT
+5:  CheckCircle2, Flag, ArrowLeft, Sparkles, X,
+13:type AIFlagSeverity = 'error' | 'warning' | 'suggestion'
+14:type AIFlagEntry = { issue: string; severity: AIFlagSeverity }
+16:// Context so FieldRow can read AI flags without prop drilling
+17:const AIFlagsContext = createContext<Record<string, AIFlagEntry>>({})
+37:  if (fields.length === 0) return { marked: 0, total: 0, pct: 0 }
+38:  const marked = fields.filter(f => f.marked).length
+39:  return { marked, total: fields.length, pct: Math.round((marked / fields.length) * 100) }
+41:function getSectionFlagCount(section: SurveySection) {
+42:  return getSectionFields(section).filter(f => f.flagged).length
+45:  if (fields.length === 0) return { marked: 0, total: 0, pct: 0 }
+46:  const marked = fields.filter(f => f.marked).length
+47:  return { marked, total: fields.length, pct: Math.round((marked / fields.length) * 100) }
+74:  const [aiFlags, setAiFlags] = useState<Record<string, AIFlagEntry>>({})
+132:  const totalMarked = allFields.filter(f => f.marked).length
+135:  const totalFlags = allFields.filter(f => f.flagged).length
+139:    const { marked, total } = getSectionProgress(s)
+140:    return total > 0 && marked === total
+144:  const flaggedBySection = sections.flatMap((section, sectionIdx) => {
+147:      sub.fields.filter(f => f.flagged).forEach(f => {
+153:        sub.fields.filter(f => f.flagged).forEach(f => {
+158:        si.fields.filter(f => f.flagged).forEach(f => {
+183:        return { ...section, subsections: section.subsections.map(sub => sub.id === targetSubId ? { ...sub, fields: sub.fields.map(f => f.flagged ? f : { ...f, marked: true }) } : sub) }
+191:          subsections: section.subsections.map(sub => ({ ...sub, fields: sub.fields.map(f => f.flagged ? f : { ...f, marked: true }) })),
+192:          items: section.items?.map(item => ({ ...item, subsections: item.subsections.map(sub => ({ ...sub, fields: sub.fields.map(f => f.flagged ? f : { ...f, marked: true }) })) })),
+223:  // AI Analysis — flags required-empty fields, user-flagged fields, and adds a mock suggestion
+227:      const newFlags: Record<string, AIFlagEntry> = {}
+228:      // Required fields with no value → error
+229:      allFields.filter(f => f.required && !f.value).slice(0, 3).forEach(f => {
+230:        newFlags[f.id] = { issue: 'Required field has no value. Must be completed before finalizing the survey.', severity: 'error' }
+232:      // User-flagged fields → add AI context warning
+233:      allFields.filter(f => f.flagged).slice(0, 2).forEach(f => {
+234:        if (!newFlags[f.id]) {
+235:          newFlags[f.id] = { issue: 'Manually flagged. AI recommends cross-referencing this value against site documentation before approving.', severity: 'warning' }
+239:      const candidates = allFields.filter(f => !newFlags[f.id] && !f.flagged && f.value)
+241:        newFlags[candidates[0].id] = { issue: `Value "${candidates[0].value}" may differ from last inspection. Verify against tower records.`, severity: 'suggestion' }
+243:      setAiFlags(newFlags)
+249:  const { marked: sMarked, total: sTotal, pct: sPct } = getSectionProgress(activeSection)
+250:  const sFlags = getSectionFlagCount(activeSection)
+255:  const subMarked = activeSubFields.filter(f => f.marked).length
+258:  const subFlags = activeSubFields.filter(f => f.flagged).length
+276:  const filteredNavSections = sections
+286:  const aiIssueCount = Object.keys(aiFlags).length
+289:    <AIFlagsContext.Provider value={aiFlags}>
+311:                <div className={clsx('h-full rounded-full transition-all duration-300', overallPct === 100 ? 'bg-green-600' : 'bg-teal-300')} style={{ width: `${overallPct}%` }} />
+313:              <span className={clsx('text-xs font-bold w-8 flex-shrink-0', overallPct === 100 ? 'text-green-600' : 'text-teal-400')}>{overallPct}%</span>
+320:            {/* Flags */}
+326:                  ? 'bg-red-600/10 text-red-600'
+327:                  : totalFlags > 0
+328:                    ? 'text-red-600 hover:bg-red-600/8'
+332:              <Flag size={13} />
+333:              <span className="hidden lg:inline">Flags</span>
+334:              {totalFlags > 0 && (
+335:                <span className={clsx('rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center flex-shrink-0', rightTab === 'flags' ? 'bg-red-600 text-white' : 'bg-red-600/15 text-red-600')}>
+336:                  {totalFlags}
+363:              saveState === 'saving' ? 'text-std-gray-lm' : saveState === 'saved' ? 'text-green-600' : 'text-std-gray-dm'
+376:              <CheckCircle2 size={13} />
+419:                const flags = getSectionFlagCount(section)
+420:                const aiCount = getSectionFields(section).filter(f => aiFlags[f.id]).length
+425:                      isActive ? 'border-teal-400 bg-teal-400/20' : pct === 100 ? 'border-green-600 bg-green-600/15' : flags > 0 ? 'border-red-600/50 bg-red-600/10' : aiCount > 0 ? 'border-purple-500/50 bg-purple-500/10' : 'border-nav-gray hover:border-teal-400/60'
+449:                {filteredNavSections.length === 0 && (
+452:                {filteredNavSections.map(({ section, idx }) => {
+453:                  const { marked, total, pct } = getSectionProgress(section)
+454:                  const flags = getSectionFlagCount(section)
+455:                  const sectionAICount = getSectionFields(section).filter(f => aiFlags[f.id]).length
+457:                  const isDone = sectionComplete.has(section.id) || (total > 0 && marked === total)
+469:                              <span className={clsx('text-xs font-semibold truncate max-w-[120px]', isActive ? 'text-teal-900' : isDone ? 'text-green-600' : 'text-black')}>
+473:                                {isDone && <span className="w-4 h-4 rounded-full bg-green-600/15 flex items-center justify-center"><Check size={9} className="text-green-600" /></span>}
+474:                                {flags > 0 && <span className="flex items-center gap-0.5 text-[10px] text-red-600 bg-red-600/10 rounded-full px-1.5 py-0.5 border border-red-600/20 font-semibold"><Flag size={8} />{flags}</span>}
+482:                                  <div className={clsx('h-full rounded-full transition-all duration-300', pct === 100 ? 'bg-green-600' : isActive ? 'bg-teal-300' : 'bg-teal-400/60')} style={{ width: `${pct}%` }} />
+484:                                <p className={clsx('text-[10px]', isActive ? 'text-teal-600' : isDone ? 'text-green-600' : 'text-std-gray-lm')}>
+485:                                  {isDone ? 'Complete' : `${marked}/${total} checked`}
+503:                            const { marked: ssMarked, total: ssTotal, pct: ssPct } = getSubsectionProgress(sub.fields)
+505:                            const subFlags = sub.fields.filter(f => f.flagged).length
+506:                            const subAICount = sub.fields.filter(f => aiFlags[f.id]).length
+511:                                  <span className={clsx('text-[11px] truncate max-w-[110px]', subDone ? 'text-green-600 font-medium' : isActiveSub ? 'text-teal-600 font-semibold' : isActive ? 'text-teal-900 font-medium' : 'text-std-gray-lm')}>{sub.title}</span>
+513:                                    {subDone && <Check size={9} className="text-green-600" />}
+514:                                    {subFlags > 0 && <span className="flex items-center gap-0.5 text-[9px] text-red-600 font-semibold"><Flag size={7} />{subFlags}</span>}
+519:                                {ssTotal > 0 && <div className="w-full h-0.5 bg-bg-gray-lm rounded-full overflow-hidden"><div className={clsx('h-full rounded-full transition-all duration-300', ssPct === 100 ? 'bg-green-600' : isActive ? 'bg-teal-300' : 'bg-teal-400/40')} style={{ width: `${ssPct}%` }} /></div>}
+525:                            const iMarked = itemFields.filter(f => f.marked).length
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx (lines 61-140)
+Bash
+IN
+grep -n "FieldDemo\|FieldRow\|flagged\|marked\|isMarked\|isFlagged\|bg-red\|bg-green\|border-red\|border-green" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\QCEditorPage.tsx" | tail -60
+
+OUT
+837:            {flaggedBySection.length === 0 ? (
+845:                {flaggedBySection.map(({ field, sectionIdx, subsectionIdx, locationLabel }) => {
+853:                        isHere ? 'border-red-600/40 bg-red-600/[0.07]' : 'border-red-600/20 bg-red-600/[0.03] hover:bg-red-600/[0.07] hover:border-red-600/40'
+895:                Analyzes the survey for missing required data, anomalies, and quality issues. Issues are flagged directly on the relevant fields in each section.
+935:                      const borderCls = entry.severity === 'error' ? 'border-red-600/25 bg-red-600/[0.04]' : entry.severity === 'warning' ? 'border-amber-500/25 bg-amber-500/[0.04]' : 'border-purple-600/20 bg-purple-600/[0.03]'
+980:          <div className={clsx('px-6 pt-6 pb-4', totalFlags > 0 ? 'bg-amber-50' : 'bg-green-50')}>
+981:            <div className={clsx('w-12 h-12 rounded-full flex items-center justify-center mb-3', totalFlags > 0 ? 'bg-amber-500/15' : 'bg-green-600/15')}>
+986:              {totalFlags > 0 ? `${totalFlags} field${totalFlags > 1 ? 's' : ''} are flagged and need attention before completing.` : 'This will lock the survey and generate a report-ready export.'}
+997:                  <div className={clsx('h-full rounded-full transition-all', overallPct === 100 ? 'bg-green-600' : 'bg-teal-300')} style={{ width: `${overallPct}%` }} />
+1009:                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-600/8 border border-green-600/20">
+1020:              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-600/8 border border-red-600/20">
+1022:                <p className="text-xs font-semibold text-red-600">{totalFlags} flagged field{totalFlags > 1 ? 's' : ''} need attention</p>
+1028:              {flaggedBySection.map(({ field, locationLabel }) => (
+1040:              <button onClick={() => { setCompletionModalOpen(false); setRightTab('flags') }} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border border-red-600/30 bg-red-600/8 text-red-600 hover:bg-red-600/15 transition-colors">
+1044:            <button onClick={() => { setSurveyComplete(true); setCompletionModalOpen(false) }} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors">
+1055:      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-green-600 text-white px-5 py-3 rounded-2xl shadow-xl">
+1058:          <p className="text-sm font-semibold">Survey marked complete</p>
+1090:          <FieldRow key={field.id} field={field} onUpdate={onUpdateField} nested={nested} />
+1098:function FieldRow({
+1127:  const rowBg = field.flagged ? 'bg-red-600/5' : field.marked ? 'bg-green-600/[0.04]' : 'bg-white'
+1128:  const boxBase = clsx('rounded-lg border transition-all duration-200', field.marked ? 'border-green-600/20 bg-green-600/[0.03]' : 'border-nav-gray bg-white')
+1134:        onClick={() => onUpdate(field.id, { flagged: !field.flagged, ...((!field.flagged) ? { marked: false } : {}) })}
+1135:        className={clsx('p-1.5 rounded-lg transition-colors', field.flagged ? 'bg-red-600/10 text-red-600 border border-red-600/25' : 'text-std-gray-lm hover:text-red-600 hover:bg-red-600/8')}
+1136:        title={field.flagged ? 'Remove flag' : 'Flag for review'}
+1141:        disabled={field.flagged}
+1142:        onClick={() => !field.flagged && onUpdate(field.id, { marked: !field.marked })}
+1144:          field.flagged ? 'opacity-30 cursor-not-allowed text-std-gray-lm border border-nav-gray' :
+1145:          field.marked ? 'bg-green-600/12 text-green-600 border border-green-600/30' :
+1146:          'text-std-gray-lm border border-nav-gray hover:text-green-600 hover:border-green-600/40 hover:bg-green-600/8'
+1148:        title={field.flagged ? 'Clear the flag before marking as reviewed' : field.marked ? 'Uncheck' : 'Mark as reviewed'}
+1158:      ? { badge: 'text-red-600 bg-red-600/10 border-red-600/20', insight: 'bg-red-600/5 border-red-600/20', icon: 'text-red-600', label: 'AI Issue' }
+1167:        <div className={clsx('w-[3px] flex-shrink-0 rounded-full my-3 transition-colors duration-300', field.marked ? 'bg-green-600' : 'bg-red-600')} />
+1171:            <span className={clsx('text-sm font-semibold leading-snug transition-colors', field.marked ? 'text-std-gray-lm' : 'text-black')}>
+1175:              <span className="inline-flex items-center text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5">Required</span>
+1177:            {field.flagged && (
+1178:              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5"><Flag size={9} /> Flagged</span>
+1180:            {field.marked && (
+1181:              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5"><Check size={9} /> Reviewed</span>
+1208:                onClick={() => { if (field.marked) return; const rect = triggerRef.current?.getBoundingClientRect(); if (rect) setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width }); setSelectOpen(v => !v) }}
+1209:                className={clsx(boxBase, !field.marked && 'cursor-pointer hover:border-teal-300', selectOpen && 'border-indigo-500/40 ring-2 ring-indigo-500/10')}
+1212:                  <div className={clsx('flex-1 min-w-0 text-sm', field.value ? 'text-black' : 'text-std-gray-dm italic', field.marked && 'opacity-60')}>
+1217:                      onClick={() => !field.marked && (() => { const rect = triggerRef.current?.getBoundingClientRect(); if (rect) setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width }); setSelectOpen(v => !v) })()}
+1218:                      disabled={field.marked}
+1242:            <div className={clsx(boxBase, !field.marked && focusRing)}>
+1244:                rows={3} disabled={field.marked} placeholder="Enter value…"
+1245:                className={clsx('w-full px-3 py-2.5 text-sm bg-transparent focus:outline-none resize-none', field.marked && 'opacity-60 cursor-not-allowed')} />
+1249:            <div className={clsx(boxBase, !field.marked && focusRing)}>
+1253:                  disabled={field.marked}
+1263:                  disabled={field.marked} placeholder="0"
+1264:                  className={clsx('flex-1 min-w-0 text-sm bg-transparent focus:outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none', field.marked && 'opacity-60 cursor-not-allowed')}
+1268:                  disabled={field.marked}
+1278:            <div className={clsx(boxBase, !field.marked && focusRing)}>
+1283:                  disabled={field.marked} placeholder="Enter value…"
+1284:                  className={clsx('flex-1 min-w-0 text-sm bg-transparent focus:outline-none', field.marked && 'opacity-60 cursor-not-allowed')} />
+1394:              <tr key={row.id} className={clsx('group transition-colors', isPendingDelete ? 'bg-red-600/5' : 'hover:bg-hover-gray-lm')}>
+1395:                <td className={clsx('px-4 py-2.5 text-left', isPendingDelete && 'bg-red-600/5')}>
+1410:                <td className={clsx('px-4 py-2.5 text-left', isPendingDelete && 'bg-red-600/5')}>
+1415:                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+1437:                <td className={clsx('text-center w-10', isPendingDelete && 'bg-red-600/5')}>
+1441:                      className="p-1.5 rounded-lg text-std-gray-dm opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-600/8 transition-all mx-auto"
+Now let me check the other QC pages for their field rendering:
+
+Bash
+IN
+grep -n "flagged\|marked\|bg-red\|bg-green\|border-red\|border-green\|FieldRow\|FieldDemo" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx" | head -40
+
+OUT
+28:  flagged: boolean
+29:  marked: boolean
+67:    flagged: false, marked: false, ...partial,
+82:  const items = [leg.observationDistanceMarked, leg.observationTypeMarked, ...leg.observations.map(o => o.marked)]
+83:  const total = items.length, marked = items.filter(Boolean).length
+84:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+88:  return (leg.observationDistanceFlagged ? 1 : 0) + (leg.observationTypeFlagged ? 1 : 0) + leg.observations.filter(o => o.flagged).length
+93:    const items = [s.structureTypeMarked, s.legCountMarked, true /* steelHeight always marked */, s.baseFaceWidthMarked]
+94:    return { marked: items.filter(Boolean).length, total: items.length, pct: Math.round((items.filter(Boolean).length / items.length) * 100) }
+97:  const marked = all.reduce((a, p) => a + p.marked, 0)
+99:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+104:  const marked    = sections.reduce((a, p) => a + p.marked, 0)
+108:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0, flagCount }
+128:        makeObs('138', { degrees: '0', minutes: '0', seconds: '5',  shift: 'Left',  marked: true }),
+129:        makeObs('160', { degrees: '0', minutes: '0', seconds: '8',  shift: 'None',  marked: true }),
+130:        makeObs('182', { degrees: '0', minutes: '0', seconds: '3',  shift: 'Right', marked: true }),
+131:        makeObs('204', { degrees: '0', minutes: '0', seconds: '2',  shift: 'None',  marked: true }),
+138:        makeObs('138', { degrees: '0', minutes: '0', seconds: '4',  shift: 'None',  marked: true }),
+139:        makeObs('160', { degrees: '0', minutes: '0', seconds: '6',  shift: 'None',  marked: true }),
+140:        makeObs('182', { degrees: '0', minutes: '0', seconds: '9',  shift: 'Right', flagged: true, marked: true }),
+141:        makeObs('204', { degrees: '0', minutes: '0', seconds: '1',  shift: 'None',  marked: true }),
+162:          {leg.observations.filter(o => o.marked).length}/{leg.observations.length} marked
+185:              <tr key={obs.id} className={clsx('transition-colors', obs.flagged ? 'bg-red-600/[0.03]' : obs.marked ? 'bg-green-600/[0.02]' : 'hover:bg-hover-gray-lm/50')}>
+209:                    <button onClick={() => onUpdateObs(obs.id, { flagged: !obs.flagged })}
+210:                      className={clsx('p-1.5 rounded border transition-colors', obs.flagged ? 'text-red-600 bg-red-600/10 border-red-600/30' : 'text-std-gray-lm border-nav-gray hover:text-red-600 hover:bg-red-600/8 hover:border-red-600/30')}>
+213:                    <button onClick={() => onUpdateObs(obs.id, { marked: !obs.marked })}
+214:                      className={clsx('p-1.5 rounded border transition-colors', obs.marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8 hover:border-indigo-300/60')}>
+236:  const flagBtn = (flagged: boolean, onToggle: () => void) => (
+238:      className={clsx('p-1.5 rounded-lg border transition-colors', flagged ? 'text-red-600 bg-red-600/10 border-red-600/30' : 'text-std-gray-lm border-nav-gray hover:text-red-600 hover:bg-red-600/8')}>
+242:  const checkBtn = (marked: boolean, onToggle: () => void) => (
+244:      className={clsx('p-1.5 rounded-lg border transition-colors', marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8')}>
+260:              <div className="w-1 h-5 rounded-full flex-shrink-0 bg-red-400" />
+277:              <div className="w-1 h-5 rounded-full flex-shrink-0 bg-red-400" />
+345:                    className="p-1.5 rounded border border-nav-gray text-std-gray-lm opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-600/8 hover:border-red-600/30 transition-all block ml-auto">
+417:  const { marked: totalMarked, total: totalFields, pct: overallPct, flagCount: totalFlags } = getOverallProgress(survey)
+429:      if (o.flagged) flagList.push({ label: `Observation at ${o.elevation} ft`, location: `Leg ${leg.label}` })
+435:    { id: 'structureType', label: 'Structure Type',  value: survey.structureType,  flagged: survey.structureTypeFlagged,  required: true,  sectionId: 'summary' as SectionId, legId: null as string | null },
+436:    { id: 'legCount',      label: 'Legs',            value: survey.legCount,       flagged: survey.legCountFlagged,       required: true,  sectionId: 'summary' as SectionId, legId: null },
+437:    { id: 'baseFaceWidth', label: 'Base Face Width',  value: survey.baseFaceWidth,  flagged: survey.baseFaceWidthFlagged,  required: true,  sectionId: 'summary' as SectionId, legId: null },
+439:      { id: `${leg.id}_dist`, label: `Leg ${leg.label} – Observation Distance`, value: leg.observationDistance, flagged: leg.observationDistanceFlagged, required: true,  sectionId: 'legs' as SectionId, legId: leg.id },
+Bash
+IN
+grep -n "flagged\|marked\|bg-red\|bg-green\|border-red\|border-green\|FieldRow\|FieldDemo" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx" | head -40
+
+OUT
+17:type PhotoItem   = { id: string; filename: string | null; marked: boolean; flagged: boolean }
+29:  flagged: boolean
+30:  marked: boolean
+39:type DeficiencyItem = { id: string; issue: string | null; severity: string; locations: string[]; notes: string; photos: PhotoItem[]; flagged: boolean; marked: boolean; collapsed: boolean }
+40:type CatchAllItem   = { id: string; description: string; flagged: boolean; marked: boolean }
+68:  return { id, filename, marked: !!filename, flagged: false }
+74:  return { id, guyLevel: level, position: pos, size, strengthRating: rating, preformColorCode: color, measuredTension: tension, tensionPropriety: prop, notes: '', flagged: false, marked: prop !== '' }
+123:    { id: 'def01', issue: 'Guy wire serving not up to standard', severity: '2', locations: ['A','AA','AAA','B','BB','CC','C'], notes: 'Guy wire serving has not been installed. Stainless-steel wire or hose clamps are required.', photos: ['a','b','c','d'].map(x => makePhoto(`def_01_${x}`, `def_01_${x}.jpg`)), flagged: false, marked: false, collapsed: false },
+124:    { id: 'def02', issue: 'Vegetation issues', severity: '3', locations: ['A','B','AA','BB'], notes: '', photos: ['a','b','c','d'].map(x => makePhoto(`def_02_${x}`, `def_02_${x}.jpg`)), flagged: false, marked: false, collapsed: true },
+125:    { id: 'def03', issue: 'Guy anchor safety wire (or equivalent) not present / not up to standard', severity: '2', locations: ['A','C'], notes: '', photos: ['a','b','c','d'].map(x => makePhoto(`def_03_${x}`, `def_03_${x}.jpg`)), flagged: false, marked: false, collapsed: true },
+126:    { id: 'def04', issue: 'Guy anchor safety wire (or equivalent) not present / not up to standard', severity: '1', locations: ['B'], notes: '', photos: [makePhoto('def_04_a', 'def_04_a.jpg')], flagged: true, marked: false, collapsed: true },
+133:  let marked = 0, total = 2
+134:  if (c.anchorRadiusMarked) marked++
+135:  if (c.relativeElevationMarked) marked++
+136:  c.wires.forEach(w => { total++; if (w.marked) marked++ })
+137:  c.photoGroups.forEach(pg => pg.photos.forEach(p => { if (p.filename) { total++; if (p.marked) marked++ } }))
+138:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+141:  return (c.anchorRadiusFlagged ? 1 : 0) + (c.relativeElevationFlagged ? 1 : 0) + c.wires.filter(w => w.flagged).length
+145:    let marked = 0, total = 0
+146:    s.compounds.forEach(c => { const p = getCompoundProgress(c); marked += p.marked; total += p.total })
+147:    return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+150:    let marked = 0, total = 0
+151:    s.guyPhotos.forEach(pg => pg.photos.forEach(p => { if (p.filename) { total++; if (p.marked) marked++ } }))
+152:    return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+155:    const total = s.deficiencies.length, marked = s.deficiencies.filter(d => d.marked).length
+156:    return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+158:  const total = s.catchAll.length, marked = s.catchAll.filter(c => c.marked).length
+159:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+163:  if (id === 'deficiencies') return s.deficiencies.filter(d => d.flagged).length
+167:  let marked = 0, total = 0
+168:  SECTIONS.forEach(sec => { const p = getSectionProgress(sec.id, s); marked += p.marked; total += p.total })
+169:  const flagCount = s.compounds.reduce((a, c) => a + getCompoundFlagCount(c), 0) + s.deficiencies.filter(d => d.flagged).length
+170:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0, flagCount }
+226:                <tr key={wire.id} className={clsx('transition-colors', isPending ? 'bg-red-600/[0.06]' : wire.marked ? 'bg-green-600/[0.02]' : 'hover:bg-hover-gray-lm/50')}>
+231:                        <button onClick={() => { onRemove(wire.id); setPendingDeleteId(null) }} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors">Remove</button>
+283:                        <button onClick={() => onUpdate(wire.id, { flagged: !wire.flagged })} className={clsx('p-1.5 rounded border transition-colors', wire.flagged ? 'text-red-600 bg-red-600/10 border-red-600/30' : 'text-std-gray-lm border-nav-gray hover:text-red-600 hover:bg-red-600/8')}><Flag size={11} /></button>
+284:                        <button onClick={() => onUpdate(wire.id, { marked: !wire.marked })} className={clsx('p-1.5 rounded border transition-colors', wire.marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8 hover:border-indigo-300/60')}><Check size={11} /></button>
+285:                        <button onClick={() => setPendingDeleteId(wire.id)} className="p-1.5 rounded border border-nav-gray text-std-gray-lm hover:text-red-600 hover:bg-red-600/8 hover:border-red-600/30 transition-colors"><Minus size={11} /></button>
+313:    wires: [...compound.wires, { id: `w_${compound.label}_${Date.now()}`, guyLevel: '', position: '', size: '', strengthRating: '', preformColorCode: '', measuredTension: '', tensionPropriety: '', notes: '', flagged: false, marked: false }]
+336:                className={clsx('p-1.5 rounded border transition-colors', compound.anchorRadiusFlagged ? 'text-red-600 bg-red-600/10 border-red-600/30' : 'text-std-gray-lm border-nav-gray hover:text-red-600 hover:bg-red-600/8')}><Flag size={12} /></button>
+Bash
+IN
+grep -n "flagged\|marked\|bg-red\|bg-green\|border-red\|border-green\|FieldRow\|FieldDemo" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ServiceCOPQCPage.tsx" | head -40
+
+OUT
+21:type PhotoSlot = { id: string; filename: string | null; flagged: boolean; marked: boolean }
+41:type CatchAllItem = { id: string; description: string; flagged: boolean; marked: boolean }
+77:  return { id, filename, flagged: false, marked: !!filename }
+101:  return { filled: filled.length, total: pg.slots.length, marked: filled.filter(s => s.marked).length }
+106:  let marked = fields.filter(Boolean).length
+109:    pg.slots.filter(s => s.filename).forEach(s => { total++; if (s.marked) marked++ })
+111:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+116:    rru.photoGroups.flatMap(pg => pg.slots).filter(s => s.flagged).length
+125:    let marked = fields.filter(Boolean).length, total = fields.length
+127:    if (s.glamourPhoto.filename) { total++; if (s.glamourPhoto.marked) marked++ }
+128:    s.sitePhotoGroups.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+129:    return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+132:    let marked = 0, total = 0
+133:    s.gammaOverallViews.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+134:    s.gammaRRUs.forEach(rru => { const p = getRRUProgress(rru); marked += p.marked; total += p.total })
+135:    return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+137:  const total = s.catchAll.length, marked = s.catchAll.filter(c => c.marked).length
+138:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+143:    return [s.eusFlagged, s.enbFlagged, s.craneFlagged, s.ticketFlagged, s.sectorsFlagged, s.workFlagged, s.returnVisitFlagged, s.resolutionFlagged, s.glamourPhoto.flagged].filter(Boolean).length +
+144:      s.sitePhotoGroups.flatMap(pg => pg.slots).filter(s => s.flagged).length
+147:    return s.gammaOverallViews.flatMap(pg => pg.slots).filter(s => s.flagged).length +
+150:  return s.catchAll.filter(c => c.flagged).length
+155:  const marked = sections.reduce((a, p) => a + p.marked, 0)
+158:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0, flagCount }
+184:      const marked = fields.filter(Boolean).length
+185:      return { marked, total: fields.length, pct: Math.round((marked / fields.length) * 100) }
+189:      return { marked: has && s.glamourPhoto.marked ? 1 : 0, total: has ? 1 : 0, pct: has && s.glamourPhoto.marked ? 100 : 0 }
+192:      let marked = 0, total = 0
+193:      s.sitePhotoGroups.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+194:      return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+199:      let marked = 0, total = 0
+200:      s.gammaOverallViews.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+201:      return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+204:    if (rru) { const p = getRRUProgress(rru); return { marked: p.marked, total: p.total, pct: p.pct } }
+206:  const total = s.catchAll.length, marked = s.catchAll.filter(c => c.marked).length
+207:  return { marked, total, pct: total > 0 ? Math.round((marked / total) * 100) : 0 }
+213:    if (sub === 'glamour')     return s.glamourPhoto.flagged ? 1 : 0
+214:    if (sub === 'site_photos') return s.sitePhotoGroups.flatMap(pg => pg.slots).filter(sl => sl.flagged).length
+217:    if (sub === 'overall_views') return s.gammaOverallViews.flatMap(pg => pg.slots).filter(sl => sl.flagged).length
+221:  return s.catchAll.filter(c => c.flagged).length
+Bash
+IN
+grep -n "indigo\|marked.*btn\|checkBtn\|check.*button\|p-1\.5.*rounded.*marked\|marked.*p-1\.5" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ServiceCOPQCPage.tsx" | head -30
+
+OUT
+308:                    {slot.marked && <Check size={13} className="absolute top-1.5 right-1.5 text-green-600 bg-white rounded-full p-0.5 shadow-sm" />}
+375:  const checkBtn = (marked: boolean, onToggle: () => void) => (
+377:      className={clsx('p-1.5 rounded-lg border transition-colors', marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8')}>
+419:            {checkBtn(rru.existingSerialMarked, () => onUpdate({ existingSerialMarked: !rru.existingSerialMarked }))}
+437:            {checkBtn(rru.newSerialMarked, () => onUpdate({ newSerialMarked: !rru.newSerialMarked }))}
+683:  const checkBtn = (marked: boolean, onToggle: () => void) => (
+685:      className={clsx('p-1.5 rounded-lg border transition-colors flex-shrink-0', marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8')}>
+918:                          {checkBtn(survey.eusMarked, () => setSurvey(p => ({ ...p, eusMarked: !p.eusMarked })))}
+933:                          {checkBtn(survey.enbMarked, () => setSurvey(p => ({ ...p, enbMarked: !p.enbMarked })))}
+956:                          {checkBtn(survey.craneMarked, () => setSurvey(p => ({ ...p, craneMarked: !p.craneMarked })))}
+972:                                  survey.ticketType === opt ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500/8 text-indigo-500 border-indigo-500/25 hover:bg-indigo-500 hover:text-white')}>
+978:                          {checkBtn(survey.ticketMarked, () => setSurvey(p => ({ ...p, ticketMarked: !p.ticketMarked })))}
+996:                                    sel ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500/8 text-indigo-500 border-indigo-500/25 hover:bg-indigo-500 hover:text-white')}>
+1003:                          {checkBtn(survey.sectorsMarked, () => setSurvey(p => ({ ...p, sectorsMarked: !p.sectorsMarked })))}
+1024:                          {checkBtn(survey.workMarked, () => setSurvey(p => ({ ...p, workMarked: !p.workMarked })))}
+1045:                          {checkBtn(survey.returnVisitMarked, () => setSurvey(p => ({ ...p, returnVisitMarked: !p.returnVisitMarked })))}
+1061:                                  survey.resolutionType === opt ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500/8 text-indigo-500 border-indigo-500/25 hover:bg-indigo-500 hover:text-white')}>
+1067:                          {checkBtn(survey.resolutionMarked, () => setSurvey(p => ({ ...p, resolutionMarked: !p.resolutionMarked })))}
+1096:                            {survey.glamourPhoto.marked && <Check size={13} className="absolute top-1.5 right-1.5 text-green-600 bg-white rounded-full p-0.5 shadow-sm" />}
+1107:                        {checkBtn(survey.glamourPhoto.marked, () => setSurvey(p => ({ ...p, glamourPhoto: { ...p.glamourPhoto, marked: !p.glamourPhoto.marked } })))}
+1192:                              className={clsx('flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors', item.marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8')}>
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\QCEditorPage.tsx (lines 1099-1178)
+Bash
+IN
+grep -n "indigo.*marked\|marked.*indigo" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx"
+
+OUT
+284:                        <button onClick={() => onUpdate(wire.id, { marked: !wire.marked })} className={clsx('p-1.5 rounded border transition-colors', wire.marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8 hover:border-indigo-300/60')}><Check size={11} /></button>
+Good. Now I have a complete picture of all the inconsistencies:
+
+ComponentLibraryPage FieldDemo: row bg 'bg-white border-nav-gray/60 opacity-75' when marked → needs green + a "Reviewed" badge
+PlumbTwistQCPage: checkBtn helper + obs check button use indigo → needs green
+GuyFacilitiesQCPage: wire check button uses indigo → needs green
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx
+Modified
+Now add the Reviewed badge in the label row, right after the Flagged badge:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx
+Added 1 line
+Now fix PlumbTwistQCPage — both the inline obs check button and the checkBtn helper:
+
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 210-219)
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx
+Modified
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 241-248)
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx
+Edit failed
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx
+Modified
+Now fix GuyFacilitiesQCPage:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Edit failed
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx (lines 283-286)
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Modified
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+Clean. Here's a summary of all changes made:
+
+File	What changed
+ComponentLibraryPage.tsx	Row bg: bg-white opacity-75 → bg-green-600/[0.04] border-green-600/20 when marked. Added "Reviewed" green badge next to Flagged badge.
+PlumbTwistQCPage.tsx	Obs check button + checkBtn helper: indigo → green when marked
+GuyFacilitiesQCPage.tsx	Wire check button: indigo → green when marked
+QCEditorPage.tsx and ServiceCOPQCPage.tsx were already using green — no changes needed there.
+
+
+image.png
+497×98
+
+image.png
+462×117
+the first image is from the compund the second plumb and twist. These are clearly not the same state and not using teh same button. I like the look of the compound better than the plumb and twist they need to match
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 231-350)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 371-490)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 601-720)
+Now let me find the summary section field rendering:
+
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 751-870)
+Now I can see the pattern clearly. The PlumbTwist summary fields use 'bg-white border-nav-gray/60 opacity-75' for the marked state and are missing the green highlight, the left accent bar, and the Reviewed badge. I need to update all three summary fields (Structure Type, Legs, Base Face Width) and also the leg settings fields. Let me read the rest of the Base Face Width field and check if there are more:
+
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx (lines 867-896)
+Now I have the full picture. The PlumbTwist summary fields use 'bg-white border-nav-gray/60 opacity-75' for marked state and are missing the left accent bar and Reviewed badge. I'll fix all three summary fields and the leg settings fields to match the QCEditorPage style exactly.
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx
+Added 20 lines
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx
+Added 10 lines
+Now fix the leg settings fields (Observation Distance and Observation Type) — swap the static bg-red-400 bar for a dynamic one and add Reviewed badges:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\PlumbTwistQCPage.tsx
+Added 12 lines
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+Clean. Here's what was standardized across all fields in PlumbTwistQCPage:
+
+All fields now share the same visual language as QCEditorPage (compound):
+
+State	Border	Background	Left bar	Badge
+Default	border-nav-gray	white	bg-nav-gray	—
+Flagged	border-red-600/25	bg-red-600/[0.04]	bg-red-600	Flagged (red)
+Reviewed	border-green-600/20	bg-green-600/[0.04]	bg-green-600	Reviewed (green)
+Updated fields: Structure Type, Legs, Base Face Width (summary section) + Observation Distance, Observation Type (leg settings).
+
+
+image.png
+739×564
+make these the grid image standard for cop scopes of work in the componants page
+Let me look at how the photo grid is built in ServiceCOPQCPage and what's currently in the ComponentLibraryPage photo section.
+
+Bash
+IN
+grep -n "photo\|Photo\|grid\|slot\|Add photo\|Overall" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ServiceCOPQCPage.tsx" | head -60
+
+OUT
+21:type PhotoSlot = { id: string; filename: string | null; flagged: boolean; marked: boolean }
+23:type PhotoGroup = {
+26:  slots: PhotoSlot[]
+38:  photoGroups: PhotoGroup[]
+55:  glamourPhoto: PhotoSlot
+56:  // Overview — site & log book photos
+57:  sitePhotoGroups: PhotoGroup[]
+59:  gammaOverallViews: PhotoGroup[]
+76:function makeSlot(id: string, filename: string | null = null): PhotoSlot {
+79:function makeGroup(id: string, label: string, count = 2, required = false): PhotoGroup {
+80:  return { id, label, required, slots: Array.from({ length: count }, (_, i) => makeSlot(`${id}_s${i}`)) }
+82:function makeRRU(id: string, existingSerial: string, newSerial: string, hasPhotos = false): RRUUnit {
+83:  const pg = (gid: string, label: string) => makeGroup(`${id}_${gid}`, label, hasPhotos ? 2 : 1)
+88:    photoGroups: [
+91:      pg('ph_ex_ground',   'Existing Grounding Photo'),
+92:      pg('ph_new_ground',  'New Grounding Photo'),
+99:function getPhotoGroupProgress(pg: PhotoGroup) {
+100:  const filled = pg.slots.filter(s => s.filename !== null)
+101:  return { filled: filled.length, total: pg.slots.length, marked: filled.filter(s => s.marked).length }
+108:  rru.photoGroups.forEach(pg => {
+109:    pg.slots.filter(s => s.filename).forEach(s => { total++; if (s.marked) marked++ })
+116:    rru.photoGroups.flatMap(pg => pg.slots).filter(s => s.flagged).length
+126:    // glamour photo
+127:    if (s.glamourPhoto.filename) { total++; if (s.glamourPhoto.marked) marked++ }
+128:    s.sitePhotoGroups.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+133:    s.gammaOverallViews.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+143:    return [s.eusFlagged, s.enbFlagged, s.craneFlagged, s.ticketFlagged, s.sectorsFlagged, s.workFlagged, s.returnVisitFlagged, s.resolutionFlagged, s.glamourPhoto.flagged].filter(Boolean).length +
+144:      s.sitePhotoGroups.flatMap(pg => pg.slots).filter(s => s.flagged).length
+147:    return s.gammaOverallViews.flatMap(pg => pg.slots).filter(s => s.flagged).length +
+153:function getOverallProgress(s: COPSurvey) {
+164:  { id: 'glamour',     label: 'Glamour Photo'             },
+165:  { id: 'site_photos', label: 'Site & Log Book Photos'    },
+173:    if (sub === 'overall_views') return 'Overall Views'
+188:      const has = !!s.glamourPhoto.filename
+189:      return { marked: has && s.glamourPhoto.marked ? 1 : 0, total: has ? 1 : 0, pct: has && s.glamourPhoto.marked ? 100 : 0 }
+191:    if (sub === 'site_photos') {
+193:      s.sitePhotoGroups.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+200:      s.gammaOverallViews.forEach(pg => pg.slots.filter(sl => sl.filename).forEach(sl => { total++; if (sl.marked) marked++ }))
+213:    if (sub === 'glamour')     return s.glamourPhoto.flagged ? 1 : 0
+214:    if (sub === 'site_photos') return s.sitePhotoGroups.flatMap(pg => pg.slots).filter(sl => sl.flagged).length
+217:    if (sub === 'overall_views') return s.gammaOverallViews.flatMap(pg => pg.slots).filter(sl => sl.flagged).length
+237:  glamourPhoto: makeSlot('glamour_01', 'glamour_01.jpg'),
+238:  sitePhotoGroups: [
+239:    { ...makeGroup('pg_logbook',   'Log Book Entry Photo',           2), slots: [makeSlot('lg_s0', 'logbook_01.jpg'), makeSlot('lg_s1')] },
+240:    { ...makeGroup('pg_signage',   'Site Signage',                   2), slots: [makeSlot('sg_s0', 'signage_01.jpg'),  makeSlot('sg_s1')] },
+241:    { ...makeGroup('pg_towerid',   'Tower ID Photo',                 2), slots: [makeSlot('ti_s0', 'towerid_01.jpg'), makeSlot('ti_s1')] },
+242:    { ...makeGroup('pg_rbs_area',  'Area around Outdoor RBS Cabinets', 2), slots: [makeSlot('ra_s0', 'rbs_area_01.jpg'), makeSlot('ra_s1')] },
+243:    { ...makeGroup('pg_rbs_cond',  'Condition of Outdoor RBS Cabinets', 2), slots: [makeSlot('rc_s0', 'rbs_cond_01.jpg'), makeSlot('rc_s1')] },
+244:    { ...makeGroup('pg_rru_label', 'DB RRU Return Label Photo',      2), slots: [makeSlot('rl_s0', 'rru_label_01.jpg'), makeSlot('rl_s1')] },
+245:    makeGroup('pg_addl_site',  'Additional Site Photos',      2),
+246:    { ...makeGroup('pg_compound_clean', 'Compound Cleaned Photos', 2), slots: [{ ...makeSlot('cc_s0', 'compound_clean_01.jpg'), flagged: true, marked: false }, makeSlot('cc_s1')] },
+247:    { ...makeGroup('pg_bphocs',    'Locked BPHOCS Photos',          2), slots: [makeSlot('bp_s0', 'bphocs_01.jpg'), makeSlot('bp_s1')] },
+248:    { ...makeGroup('pg_compound',  'Locked Compound Photos',        2), slots: [makeSlot('cp_s0', 'compound_01.jpg'), makeSlot('cp_s1')] },
+250:  gammaOverallViews: [
+251:    { ...makeGroup('gv_existing',  'Existing Overall View',          3), slots: [makeSlot('gv_s0', 'gamma_overall_01.jpg'), makeSlot('gv_s1', 'gamma_overall_02.jpg'), makeSlot('gv_s2', 'gamma_overall_03.jpg'), makeSlot('gv_s3')] },
+252:    { ...makeGroup('gv_rru2',      'Existing RRU-2 Overall View',    2), slots: [makeSlot('gr2_s0'), makeSlot('gr2_s1')] },
+260:// ─── Photo grid component ───────────────────────────────────────────────────────
+261:function PhotoGroupCard({
+267:  group: PhotoGroup
+268:  onToggleSlot: (slotId: string) => void
+Bash
+IN
+grep -n "photo\|Photo\|grid\|image\|Image" "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx" | head -40
+
+OUT
+5:  Clock, Ruler, ChevronDown, X, Image, AlertTriangle, Info, Loader2,
+6:  MoreHorizontal, Camera, FileImage, Grid3x3, Columns2, ZoomIn
+421:// ─── Photo field types ─────────────────────────────────────────────────────────
+423:function PhotoField({ label, required }: { label: string; required?: boolean }) {
+424:  const [photos, setPhotos] = useState<string[]>([])
+425:  const add = () => setPhotos(p => [...p, `photo_${String(p.length + 1).padStart(3, '0')}.jpg`])
+426:  const remove = (i: number) => setPhotos(p => p.filter((_, idx) => idx !== i))
+429:      {photos.map((filename, i) => (
+432:            <Image size={18} className="text-std-gray-lm" />
+445:        {photos.length === 0
+446:          ? <span>{required ? 'Tap to take photo' : 'Tap to take photo'}</span>
+454:function PhotoGrid({ count = 4, cols = 2 }: { count?: number; cols?: number }) {
+458:    <div className={clsx('grid gap-3', cols === 2 ? 'grid-cols-2' : 'grid-cols-3')}>
+467:              <FileImage size={28} className="relative text-teal-400/50" />
+468:              <p className="relative text-[11px] text-std-gray-lm">photo_{String(i + 1).padStart(2, '0')}.jpg</p>
+474:              <p className="text-[11px] text-std-gray-dm">Photo {i + 1}</p>
+517:    { id: 'photo-cop',    label: 'Photo / COP' },
+560:              <div className="grid gap-3">
+574:              <div className="grid gap-3">
+585:              <div className="grid gap-3">
+600:              <div className="grid gap-3">
+611:              <div className="grid gap-3">
+627:              <div className="grid gap-3">
+646:            <div className="grid gap-3">
+658:          {/* ── Photo / COP ── */}
+659:          <Section id="photo-cop" title="Photo / COP Workflow" description="Image-heavy survey patterns for Compound Overview Photo (COP) surveys.">
+661:            <SubSection title="Current — Single Photo Field (type: photo)">
+662:              <div className="grid sm:grid-cols-2 gap-4">
+663:                <PhotoField label="Overview Photo" required />
+664:                <PhotoField label="Gate Photo" required />
+668:            <SubSection title="COP — Photo Grid (2-up layout)">
+672:                    <h4 className="text-sm font-bold text-black">Compound Exterior Photos</h4>
+673:                    <p className="text-xs text-std-gray-lm mt-0.5">0 of 4 photos captured</p>
+680:                <PhotoGrid count={4} cols={2} />
+684:            <SubSection title="COP — Photo Grid (3-up layout)">
+688:                    <h4 className="text-sm font-bold text-black">Tower Face Photos</h4>
+689:                    <p className="text-xs text-std-gray-lm mt-0.5">0 of 6 photos captured · <span className="text-red-600 font-medium">Required</span></p>
+692:                <PhotoGrid count={6} cols={3} />
+696:            <SubSection title="COP — Mixed Section (Photos + Fields)">
+712:                  <PhotoField label="Gate Overview Photo" required />
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ServiceCOPQCPage.tsx (lines 261-380)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx (lines 422-541)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx (lines 656-735)
+Now I have everything I need. I'll replace the old PhotoGrid component with the PhotoGroupCard pattern from ServiceCOPQCPage and update the demo section to use it.
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx
+Added 91 lines
+Now update the demo section to use the new component:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\ComponentLibraryPage.tsx
+Removed 16 lines
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+Clean. The old placeholder PhotoGrid is replaced by the real PhotoGroupCard from ServiceCOPQCPage. Three demos in the component library now show it:
+
+Empty — 3 slots, all blank with dashed borders
+Partially filled — 4 slots, 3 preloaded with filenames + green checkmarks, 1 blank + an Add slot
+Required, empty — shows the Required indicator in the header
+The card is fully interactive in the library: click a slot to toggle it filled/empty, hover a filled slot to reveal the flag button, click Add to append a new slot.
+
+
+image.png
+281×480
+for the guy facilities survey for each compound in the wires table there should be a photo icon in the specified columns: guy size a photo called gauge measurement photo, color column should have dead-end photos attached to it, and the tension column should have tension photos attachedf to it. Each of these cells with values in each of these columns should have an image icon and an when clicking the image pops up and the ability to add images or delete images as well
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx (lines 2-101)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx (lines 101-350)
+Now I have what I need. I'll add photo arrays to GuyWire, add camera icon buttons to the three columns, and build a photo popover modal.
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Modified
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Added 4 lines
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Modified
+Also fix the inline wire creation in addWire that doesn't go through makeWire:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Modified
+Now add the WirePhotoPopover component and update the WireTable — insert it right before WireTable:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Added 114 lines
+Now update the WireTable to add photo icon buttons in the three columns and wire up the photo state updates:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Modified
+Now update the three relevant cells to include the photo icon buttons:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\GuyFacilitiesQCPage.tsx
+Added 27 lines
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+Clean. Here's what was built:
+
+WirePhoto type — { id, filename } — added as three arrays to GuyWire: gaugeMeasurementPhotos, deadEndPhotos, tensionPhotos.
+
+WireCameraCell — a camera icon button that lives inline in the table cell:
+
+Grayed out / disabled when the column has no value yet
+Teal when photos exist, with a count badge (e.g. 2)
+Clicking opens WirePhotoPopover anchored below the button
+WirePhotoPopover — renders via portal so it's never clipped by table overflow:
+
+Lists existing photos as thumbnail rows with a hover-reveal trash button to delete
+"Add Photo" dashed button at the bottom
+Auto-closes on click outside
+Columns mapped:
+
+Column	Photo type
+Size (# Strands)	Gauge Measurement Photos
+Preform Color	Dead-end Photos
+Tension (lbf)	Tension Photos
+
+image.png
+876×210
+add the attachments to these cards in a site:
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteDetailPage.tsx
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteDetailPage.tsx (lines 81-110)
+Two changes needed: add Paperclip to the stat cards array and update the grid from 5 to 6 columns.
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteDetailPage.tsx
+Modified
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteDetailPage.tsx
+Added 1 line
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\SiteDetailPage.tsx
+Modified
+Bash
+IN
+cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc --noEmit 2>&1
+
+OUT
+(Bash completed with no output)
+Done. Added Attachments as the 5th stat card (between Scans and Reports) in SiteDetailPage.tsx, pulling the count from mockSiteSummary.attachments.length, and expanded the grid from 5 to 6 columns.
+
