@@ -1,0 +1,978 @@
+╭─── Claude Code v2.1.91 ──────────────────────────────────────────────────────╮
+│                                             │ Tips for getting started       │
+│                Welcome back!                │ Run /init to create a CLAUDE.… │
+│                                             │ ────────────────────────────── │
+│                   ▐▛███▜▌                   │ Recent activity                │
+│                  ▝▜█████▛▘                  │ 2d ago  on the guy facilities… │
+│                    ▘▘ ▝▝                    │ 2d ago  /export                │
+│                                             │ /resume for more               │
+│           Sonnet 4.6 · Claude API           │                                │
+│   ~\Desktop\GitHub_Prototypes\UI-Overhaul   │                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+✻ Conversation compacted (ctrl+o for history)
+
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src\App.tsx)
+  ⎿  Added 1 line
+       6  import QCEditorPage from './pages/QCEditorPage'
+       7  import GuyFacilitiesQCPage from './pages/GuyFacilitiesQCPage'
+       8  import PlumbTwistQCPage from './pages/PlumbTwistQCPage'
+       9 +import ServiceCOPQCPage from './pages/ServiceCOPQCPage'        
+      10  import SitesListPage from './pages/SitesListPage'
+      11  import ComponentLibraryPage from './pages/ComponentLibraryPage'
+      12  
+
+● Update(src\App.tsx)
+  ⎿  Added 1 line
+      23            <Route path="sites/:siteId/visits/:visitId" element={
+          <SiteVisitPage />} />
+      24            <Route path="surveys/survey_guy/qc" element={<GuyFaci
+          litiesQCPage />} />
+      25            <Route path="surveys/survey_pt/qc" element={<PlumbTwi
+          stQCPage />} />
+      26 +          <Route path="surveys/survey_cop/qc" element={<Service
+         +COPQCPage />} />                                               
+      27            <Route path="surveys/:surveyId/qc" element={<QCEditor
+          Page />} />
+      28            <Route path="components" element={<ComponentLibraryPa
+          ge />} />
+      29          </Route>
+
+● Now let me check if survey_cop exists in mockData and if the QA Dashboard
+  links to it:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Route is added. The survey_cop entry exists in mockData with status 'Not 
+  Started'. Let me update that to 'In Progress' to match:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src\data\mockData.ts)
+  ⎿  Added 1 line, removed 1 line
+      430    { id: 'survey_001',    name: 'Compound Survey',     siteId: 
+           'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+           025 12:17 PM',  status: 'In Progress', type: 'Compound'       
+            as SurveyType },
+      431    { id: 'survey_climb',  name: 'Structure Climb',     siteId: 
+           'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+           025 12:18 PM',  status: 'Not Started', type: 'Structure Climb'
+            as SurveyType },
+      432    { id: 'survey_flight', name: 'Structure Flight',    siteId: 
+           'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+           025 12:19 PM',  status: 'Not Started', type: 'Structure Flight
+           ' as SurveyType },
+      433 -  { id: 'survey_cop',    name: 'Service COP',         siteId: 
+          -'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+          -025 12:20 PM',  status: 'Not Started', type: 'Service COP'    
+          - as SurveyType },                                             
+      433 +  { id: 'survey_cop',    name: 'Service COP',         siteId: 
+          +'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+          +025 12:20 PM',  status: 'In Progress', type: 'Service COP'    
+          + as SurveyType },                                             
+      434    { id: 'survey_pt',     name: 'Plumb & Twist',       siteId: 
+           'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+           025 12:21 PM',  status: 'In Progress', type: 'Plumb & Twist'  
+            as SurveyType },
+      435    { id: 'survey_guy',    name: 'Guy Facilities',      siteId: 
+           'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2
+           025 12:22 PM',  status: 'In Progress', type: 'Guy Facilities' 
+            as SurveyType },
+      436  ]
+
+● ServiceCOPQCPage is now routed at surveys/survey_cop/qc and the QA Dashboard
+  status is updated to 'In Progress'.
+
+❯ change the side bar navigation to have sub navigation for each subsection in  
+the cop survey instead of just scrolling to the bottom. Additionally change the 
+ statuses and add in some flags on the cop service survey. You only need to     
+look at and write in the servicecopqceditorpage.txt                             
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I have a full picture of the file. Let me plan and implement the changes:
+  - Add getSubProgress, getSubFlagCount, getSubLabel helpers
+  - Add activeSub state + flat navSteps for sub-navigation
+  - Update sidebar with always-visible sub-nav per section
+  - Update sticky header to show sub-section
+  - Split content by sub-section (not just section)
+  - Add flags/status tweaks to mock data
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 63 lines
+      158    return { marked, total, pct: total > 0 ? Math.round((marked 
+           / total) * 100) : 0, flagCount }
+      159  }
+      160  
+      161 +// ─── Sub-section helpers ───────────────────────────────────
+          +─────────────────────                                         
+      162 +const OVERVIEW_SUBS = [                                       
+      163 +  { id: 'site_info',   label: 'Site Info'                 },  
+      164 +  { id: 'glamour',     label: 'Glamour Photo'             },  
+      165 +  { id: 'site_photos', label: 'Site & Log Book Photos'    },  
+      166 +]                                                             
+      167 +                                                              
+      168 +function getSubLabel(sectionId: SectionId, sub: string | null,
+          + s: COPSurvey): string {                                      
+      169 +  if (sectionId === 'overview') {                             
+      170 +    return OVERVIEW_SUBS.find(x => x.id === sub)?.label ?? 'Ov
+          +erview'                                                       
+      171 +  }                                                           
+      172 +  if (sectionId === 'gamma') {                                
+      173 +    if (sub === 'overall_views') return 'Overall Views'       
+      174 +    const rru = s.gammaRRUs.find(r => r.id === sub)           
+      175 +    if (rru) return `RRU — ${rru.newSerial || rru.existingSeri
+          +al || rru.id}`                                                
+      176 +  }                                                           
+      177 +  return SECTIONS.find(sec => sec.id === sectionId)?.label ?? 
+          +''                                                            
+      178 +}                                                             
+      179 +                                                              
+      180 +function getSubProgress(sectionId: SectionId, sub: string | nu
+          +ll, s: COPSurvey) {                                           
+      181 +  if (sectionId === 'overview') {                             
+      182 +    if (sub === 'site_info') {                                
+      183 +      const fields = [s.eusMarked, s.enbMarked, s.craneMarked,
+          + s.ticketMarked, s.sectorsMarked, s.workMarked, s.returnVisitM
+          +arked, s.resolutionMarked]                                    
+      184 +      const marked = fields.filter(Boolean).length            
+      185 +      return { marked, total: fields.length, pct: Math.round((
+          +marked / fields.length) * 100) }                              
+      186 +    }                                                         
+      187 +    if (sub === 'glamour') {                                  
+      188 +      const has = !!s.glamourPhoto.filename                   
+      189 +      return { marked: has && s.glamourPhoto.marked ? 1 : 0, t
+          +otal: has ? 1 : 0, pct: has && s.glamourPhoto.marked ? 100 : 0
+          + }                                                            
+      190 +    }                                                         
+      191 +    if (sub === 'site_photos') {                              
+      192 +      let marked = 0, total = 0                               
+      193 +      s.sitePhotoGroups.forEach(pg => pg.slots.filter(sl => sl
+          +.filename).forEach(sl => { total++; if (sl.marked) marked++ })
+          +)                                                             
+      194 +      return { marked, total, pct: total > 0 ? Math.round((mar
+          +ked / total) * 100) : 0 }                                     
+      195 +    }                                                         
+      196 +  }                                                           
+      197 +  if (sectionId === 'gamma') {                                
+      198 +    if (sub === 'overall_views') {                            
+      199 +      let marked = 0, total = 0                               
+      200 +      s.gammaOverallViews.forEach(pg => pg.slots.filter(sl => 
+          +sl.filename).forEach(sl => { total++; if (sl.marked) marked++ 
+          +}))                                                           
+      201 +      return { marked, total, pct: total > 0 ? Math.round((mar
+          +ked / total) * 100) : 0 }                                     
+      202 +    }                                                         
+      203 +    const rru = s.gammaRRUs.find(r => r.id === sub)           
+      204 +    if (rru) { const p = getRRUProgress(rru); return { marked:
+          + p.marked, total: p.total, pct: p.pct } }                     
+      205 +  }                                                           
+      206 +  const total = s.catchAll.length, marked = s.catchAll.filter(
+          +c => c.marked).length                                         
+      207 +  return { marked, total, pct: total > 0 ? Math.round((marked 
+          +/ total) * 100) : 0 }                                         
+      208 +}                                                             
+      209 +                                                              
+      210 +function getSubFlagCount(sectionId: SectionId, sub: string | n
+          +ull, s: COPSurvey) {                                          
+      211 +  if (sectionId === 'overview') {                             
+      212 +    if (sub === 'site_info')   return [s.eusFlagged, s.enbFlag
+          +ged, s.craneFlagged, s.ticketFlagged, s.sectorsFlagged, s.work
+          +Flagged, s.returnVisitFlagged, s.resolutionFlagged].filter(Boo
+          +lean).length                                                  
+      213 +    if (sub === 'glamour')     return s.glamourPhoto.flagged ?
+          + 1 : 0                                                        
+      214 +    if (sub === 'site_photos') return s.sitePhotoGroups.flatMa
+          +p(pg => pg.slots).filter(sl => sl.flagged).length             
+      215 +  }                                                           
+      216 +  if (sectionId === 'gamma') {                                
+      217 +    if (sub === 'overall_views') return s.gammaOverallViews.fl
+          +atMap(pg => pg.slots).filter(sl => sl.flagged).length         
+      218 +    const rru = s.gammaRRUs.find(r => r.id === sub)           
+      219 +    if (rru) return getRRUFlagCount(rru)                      
+      220 +  }                                                           
+      221 +  return s.catchAll.filter(c => c.flagged).length             
+      222 +}                                                             
+      223 +                                                              
+      224  // ─── Mock data ─────────────────────────────────────────────
+           ────────────────────
+      225  const initialSurvey: COPSurvey = {
+      226    id: 'survey_cop', name: 'Service COP', siteId: 'SA-1547144',
+            siteName: 'OMA KOA 1977766',
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 3 lines, removed 3 lines
+      228    customer: 'Ericsson', coordinates: '41.093911191, -96.264883
+           786',
+      229    eusAppointmentNumber: 'SA-1547144', eusMarked: true,  eusFla
+           gged: false,
+      230    enbName: 'OMA KOA 1977766',         enbMarked: true,  enbFla
+           gged: false,
+      231 -  craneUsed: 'No',        craneMarked: true,   craneFlagged: f
+          -alse,                                                         
+      231 +  craneUsed: 'No',        craneMarked: false,  craneFlagged: t
+          +rue,                                                          
+      232    ticketType: 'DB',       ticketMarked: true,  ticketFlagged: 
+           false,
+      233    sectorsWorkedOn: ['Gamma'], sectorsMarked: true, sectorsFlag
+           ged: false,
+      234 -  workCompleted: 'Yes',   workMarked: true,    workFlagged: fa
+          -lse,                                                          
+      235 -  returnVisitNeeded: 'No', returnVisitMarked: true, returnVisi
+          -tFlagged: false,                                              
+      234 +  workCompleted: 'Yes',   workMarked: false,   workFlagged: fa
+          +lse,                                                          
+      235 +  returnVisitNeeded: 'No', returnVisitMarked: true, returnVisi
+          +tFlagged: true,                                               
+      236    resolutionType: 'Hardware', resolutionMarked: true, resoluti
+           onFlagged: false,
+      237    glamourPhoto: makeSlot('glamour_01', 'glamour_01.jpg'),
+      238    sitePhotoGroups: [
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 1 line, removed 1 line
+      243      { ...makeGroup('pg_rbs_cond',  'Condition of Outdoor RBS C
+           abinets', 2), slots: [makeSlot('rc_s0', 'rbs_cond_01.jpg'), ma
+           keSlot('rc_s1')] },
+      244      { ...makeGroup('pg_rru_label', 'DB RRU Return Label Photo'
+           ,      2), slots: [makeSlot('rl_s0', 'rru_label_01.jpg'), make
+           Slot('rl_s1')] },
+      245      makeGroup('pg_addl_site',  'Additional Site Photos',      
+           2),
+      246 -    { ...makeGroup('pg_compound_clean', 'Compound Cleaned Phot
+          -os', 2), slots: [makeSlot('cc_s0', 'compound_clean_01.jpg'), m
+          -akeSlot('cc_s1')] },                                          
+      246 +    { ...makeGroup('pg_compound_clean', 'Compound Cleaned Phot
+          +os', 2), slots: [{ ...makeSlot('cc_s0', 'compound_clean_01.jpg
+          +'), flagged: true, marked: false }, makeSlot('cc_s1')] },     
+      247      { ...makeGroup('pg_bphocs',    'Locked BPHOCS Photos',    
+                 2), slots: [makeSlot('bp_s0', 'bphocs_01.jpg'), makeSlot
+           ('bp_s1')] },
+      248      { ...makeGroup('pg_compound',  'Locked Compound Photos',  
+                 2), slots: [makeSlot('cp_s0', 'compound_01.jpg'), makeSl
+           ot('cp_s1')] },
+      249    ],
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 1 line, removed 1 line
+      252      { ...makeGroup('gv_rru2',      'Existing RRU-2 Overall Vie
+           w',    2), slots: [makeSlot('gr2_s0'), makeSlot('gr2_s1')] },
+      253    ],
+      254    gammaRRUs: [
+      255 -    makeRRU('rru_01', 'D16YO18828', 'CF86640457', true),      
+      255 +    { ...makeRRU('rru_01', 'D16YO18828', 'CF86640457', true), 
+          +newSerialFlagged: true, newSerialMarked: false },             
+      256    ],
+      257    catchAll: [],
+      258  }
+
+● Now update the main component — add activeSub state, replace the old nav step
+  logic and markAllChecked:
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 1 line
+      460    const navigate = useNavigate()
+      461    const [survey, setSurvey] = useState<COPSurvey>(initialSurve
+           y)
+      462    const [activeSectionId, setActiveSectionId] = useState<Secti
+           onId>('overview')
+      463 +  const [activeSub, setActiveSub] = useState<string | null>('s
+          +ite_info')                                                    
+      464    const [navSearch, setNavSearch] = useState('')
+      465    const [headerCollapsed, setHeaderCollapsed] = useState(false
+           )
+      466    const [rightTab, setRightTab] = useState<'flags' | 'ai' | nu
+           ll>(null)
+
+● Now replace the derived secProgress/secFlags and nav step logic:
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 71 lines, removed 34 lines
+      537    const aiIssueCount = Object.keys(aiFlags).length
+      538    const sectionsCompleted = SECTIONS.filter(s => { const { mar
+           ked, total } = getSectionProgress(s.id, survey); return total 
+           > 0 && marked === total }).length
+      539  
+      540 -  // Section progress & flags for current section             
+      541 -  const secProgress = getSectionProgress(activeSectionId, surv
+          -ey)                                                           
+      542 -  const secFlags    = getSectionFlagCount(activeSectionId, sur
+          -vey)                                                          
+      540 +  // Sub-section progress & flags                             
+      541 +  const secProgress = getSubProgress(activeSectionId, activeSu
+          +b, survey)                                                    
+      542 +  const secFlags    = getSubFlagCount(activeSectionId, activeS
+          +ub, survey)                                                   
+      543    const allCurrentChecked = secProgress.total > 0 && secProgre
+           ss.marked === secProgress.total
+      544  
+      545 -  // Nav steps                                                
+      546 -  const sectionIdx = SECTIONS.findIndex(s => s.id === activeSe
+          -ctionId)                                                      
+      547 -  const isFirstNav = sectionIdx <= 0                          
+      548 -  const isLastNav  = sectionIdx >= SECTIONS.length - 1        
+      549 -  function goPrev() { if (sectionIdx > 0) setActiveSectionId(S
+          -ECTIONS[sectionIdx - 1].id) }                                 
+      550 -  function goNext() { if (sectionIdx < SECTIONS.length - 1) se
+          -tActiveSectionId(SECTIONS[sectionIdx + 1].id) }               
+      551 -  function getPrevLabel() { return sectionIdx > 0 ? SECTIONS[s
+          -ectionIdx - 1].label : 'Previous' }                           
+      552 -  function getNextLabel() { return sectionIdx < SECTIONS.lengt
+          -h - 1 ? SECTIONS[sectionIdx + 1].label : 'Next' }             
+      545 +  // Flat nav steps across all sub-sections                   
+      546 +  const navSteps: { sectionId: SectionId; sub: string | null }
+          +[] = [                                                        
+      547 +    { sectionId: 'overview',  sub: 'site_info'    },          
+      548 +    { sectionId: 'overview',  sub: 'glamour'      },          
+      549 +    { sectionId: 'overview',  sub: 'site_photos'  },          
+      550 +    { sectionId: 'gamma',     sub: 'overall_views' },         
+      551 +    ...survey.gammaRRUs.map(r => ({ sectionId: 'gamma' as Sect
+          +ionId, sub: r.id })),                                         
+      552 +    { sectionId: 'catch_all', sub: null            },         
+      553 +  ]                                                           
+      554  
+      555 +  const currentNavIdx = navSteps.findIndex(s => s.sectionId ==
+          += activeSectionId && s.sub === activeSub)                     
+      556 +  const isFirstNav = currentNavIdx <= 0                       
+      557 +  const isLastNav  = currentNavIdx >= navSteps.length - 1     
+      558 +                                                              
+      559 +  function goPrev() {                                         
+      560 +    if (currentNavIdx > 0) {                                  
+      561 +      const step = navSteps[currentNavIdx - 1]                
+      562 +      setActiveSectionId(step.sectionId)                      
+      563 +      setActiveSub(step.sub)                                  
+      564 +    }                                                         
+      565 +  }                                                           
+      566 +  function goNext() {                                         
+      567 +    if (currentNavIdx < navSteps.length - 1) {                
+      568 +      const step = navSteps[currentNavIdx + 1]                
+      569 +      setActiveSectionId(step.sectionId)                      
+      570 +      setActiveSub(step.sub)                                  
+      571 +    }                                                         
+      572 +  }                                                           
+      573 +  function getPrevLabel() {                                   
+      574 +    if (currentNavIdx <= 0) return 'Previous'                 
+      575 +    const s = navSteps[currentNavIdx - 1]                     
+      576 +    return getSubLabel(s.sectionId, s.sub, survey)            
+      577 +  }                                                           
+      578 +  function getNextLabel() {                                   
+      579 +    if (currentNavIdx >= navSteps.length - 1) return 'Next'   
+      580 +    const s = navSteps[currentNavIdx + 1]                     
+      581 +    return getSubLabel(s.sectionId, s.sub, survey)            
+      582 +  }                                                           
+      583 +                                                              
+      584    function markAllChecked() {
+      585      if (activeSectionId === 'overview') {
+      556 -      setSurvey(prev => ({                                    
+      557 -        ...prev,                                              
+      558 -        eusMarked: prev.eusFlagged ? prev.eusMarked : true,   
+      559 -        enbMarked: prev.enbFlagged ? prev.enbMarked : true,   
+      560 -        craneMarked: prev.craneFlagged ? prev.craneMarked : tr
+          -ue,                                                           
+      561 -        ticketMarked: prev.ticketFlagged ? prev.ticketMarked :
+          - true,                                                        
+      562 -        sectorsMarked: prev.sectorsFlagged ? prev.sectorsMarke
+          -d : true,                                                     
+      563 -        workMarked: prev.workFlagged ? prev.workMarked : true,
+      564 -        returnVisitMarked: prev.returnVisitFlagged ? prev.retu
+          -rnVisitMarked : true,                                         
+      565 -        resolutionMarked: prev.resolutionFlagged ? prev.resolu
+          -tionMarked : true,                                            
+      566 -        glamourPhoto: prev.glamourPhoto.flagged ? prev.glamour
+          -Photo : { ...prev.glamourPhoto, marked: true },               
+      567 -        sitePhotoGroups: prev.sitePhotoGroups.map(pg => ({ ...
+          -pg, slots: pg.slots.map(s => s.flagged || !s.filename ? s : { 
+          -...s, marked: true }) })),                                    
+      568 -      }))                                                     
+      586 +      if (activeSub === 'site_info') {                        
+      587 +        setSurvey(prev => ({                                  
+      588 +          ...prev,                                            
+      589 +          eusMarked: prev.eusFlagged ? prev.eusMarked : true, 
+      590 +          enbMarked: prev.enbFlagged ? prev.enbMarked : true, 
+      591 +          craneMarked: prev.craneFlagged ? prev.craneMarked : 
+          +true,                                                         
+      592 +          ticketMarked: prev.ticketFlagged ? prev.ticketMarked
+          + : true,                                                      
+      593 +          sectorsMarked: prev.sectorsFlagged ? prev.sectorsMar
+          +ked : true,                                                   
+      594 +          workMarked: prev.workFlagged ? prev.workMarked : tru
+          +e,                                                            
+      595 +          returnVisitMarked: prev.returnVisitFlagged ? prev.re
+          +turnVisitMarked : true,                                       
+      596 +          resolutionMarked: prev.resolutionFlagged ? prev.reso
+          +lutionMarked : true,                                          
+      597 +        }))                                                   
+      598 +      } else if (activeSub === 'glamour') {                   
+      599 +        setSurvey(prev => ({ ...prev, glamourPhoto: prev.glamo
+          +urPhoto.flagged ? prev.glamourPhoto : { ...prev.glamourPhoto, 
+          +marked: true } }))                                            
+      600 +      } else if (activeSub === 'site_photos') {               
+      601 +        setSurvey(prev => ({ ...prev, sitePhotoGroups: prev.si
+          +tePhotoGroups.map(pg => ({ ...pg, slots: pg.slots.map(s => s.f
+          +lagged || !s.filename ? s : { ...s, marked: true }) })) }))   
+      602 +      }                                                       
+      603      } else if (activeSectionId === 'gamma') {
+      570 -      setSurvey(prev => ({                                    
+      571 -        ...prev,                                              
+      572 -        gammaOverallViews: prev.gammaOverallViews.map(pg => ({
+          - ...pg, slots: pg.slots.map(s => s.flagged || !s.filename ? s 
+          -: { ...s, marked: true }) })),                                
+      573 -        gammaRRUs: prev.gammaRRUs.map(rru => ({               
+      574 -          ...rru,                                             
+      575 -          existingSerialMarked: rru.existingSerialFlagged ? rr
+          -u.existingSerialMarked : true,                                
+      576 -          newSerialMarked: rru.newSerialFlagged ? rru.newSeria
+          -lMarked : true,                                               
+      577 -          photoGroups: rru.photoGroups.map(pg => ({ ...pg, slo
+          -ts: pg.slots.map(s => s.flagged || !s.filename ? s : { ...s, m
+          -arked: true }) })),                                           
+      578 -        })),                                                  
+      579 -      }))                                                     
+      604 +      if (activeSub === 'overall_views') {                    
+      605 +        setSurvey(prev => ({ ...prev, gammaOverallViews: prev.
+          +gammaOverallViews.map(pg => ({ ...pg, slots: pg.slots.map(s =>
+          + s.flagged || !s.filename ? s : { ...s, marked: true }) })) })
+          +)                                                             
+      606 +      } else {                                                
+      607 +        setSurvey(prev => ({                                  
+      608 +          ...prev,                                            
+      609 +          gammaRRUs: prev.gammaRRUs.map(rru => rru.id !== acti
+          +veSub ? rru : {                                               
+      610 +            ...rru,                                           
+      611 +            existingSerialMarked: rru.existingSerialFlagged ? 
+          +rru.existingSerialMarked : true,                              
+      612 +            newSerialMarked: rru.newSerialFlagged ? rru.newSer
+          +ialMarked : true,                                             
+      613 +            photoGroups: rru.photoGroups.map(pg => ({ ...pg, s
+          +lots: pg.slots.map(s => s.flagged || !s.filename ? s : { ...s,
+          + marked: true }) })),                                         
+      614 +          }),                                                 
+      615 +        }))                                                   
+      616 +      }                                                       
+      617      } else if (activeSectionId === 'catch_all') {
+      618        setSurvey(prev => ({ ...prev, catchAll: prev.catchAll.ma
+           p(c => c.flagged ? c : { ...c, marked: true }) }))
+      619      }
+
+● Also update the filteredSections line since navSearch now only matters for
+  top-level sections (and sub-nav handles the rest):
+
+● Now update the sidebar — replace the nav items section to add always-visible
+  sub-nav per section:
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 47 lines, removed 3 lines
+      770            <nav className="flex-1 overflow-y-auto py-2">
+      771              {filteredSections.map(sec => {
+      772                const { marked, total, pct } = getSectionProgres
+           s(sec.id, survey)
+      773 -              const flags   = getSectionFlagCount(sec.id, surv
+          -ey)                                                           
+      773 +              const flags    = getSectionFlagCount(sec.id, sur
+          +vey)                                                          
+      774                const isActive = sec.id === activeSectionId
+      775                const isDone   = total > 0 && marked === total
+      776 +                                                              
+      777 +              // Build sub-items for this section             
+      778 +              const subItems: { id: string; label: string }[] 
+          +=                                                             
+      779 +                sec.id === 'overview' ? OVERVIEW_SUBS :       
+      780 +                sec.id === 'gamma'    ? [                     
+      781 +                  { id: 'overall_views', label: 'Overall Views
+          +' },                                                          
+      782 +                  ...survey.gammaRRUs.map(r => ({ id: r.id, la
+          +bel: r.newSerial || r.existingSerial || r.id })),             
+      783 +                ] : []                                        
+      784 +                                                              
+      785                return (
+      786                  <div key={sec.id} className={clsx('mx-1 rounde
+           d-lg transition-all border', isActive ? 'bg-teal-900/8 border-
+           teal-400/35 shadow-sm' : 'border-transparent')}>
+      778 -                  <button onClick={() => setActiveSectionId(se
+          -c.id)}                                                        
+      779 -                    className={clsx('w-full text-left px-3 py-
+          -2.5 rounded-lg transition-colors', !isActive && 'hover:bg-hove
+          -r-gray-lm')}>                                                 
+      787 +                  <button                                     
+      788 +                    onClick={() => {                          
+      789 +                      setActiveSectionId(sec.id)              
+      790 +                      if (sec.id === 'overview')  setActiveSub
+          +('site_info')                                                 
+      791 +                      else if (sec.id === 'gamma') setActiveSu
+          +b('overall_views')                                            
+      792 +                      else setActiveSub(null)                 
+      793 +                    }}                                        
+      794 +                    className={clsx('w-full text-left px-3 py-
+          +2.5 rounded-lg transition-colors', !isActive && 'hover:bg-hove
+          +r-gray-lm')}                                                  
+      795 +                  >                                           
+      796                      <div className="flex items-center justify-
+           between mb-1.5">
+      797                        <span className={clsx('text-xs font-semi
+           bold truncate max-w-[130px]', isActive ? 'text-teal-900' : isD
+           one ? 'text-green-600' : 'text-black')}>{sec.label}</span>
+      798                        <div className="flex items-center gap-1 
+           flex-shrink-0 ml-1">
+     ...
+      810                        </div>
+      811                      ) : <p className="text-[10px] text-std-gra
+           y-dm">No fields</p>}
+      812                    </button>
+      813 +                                                              
+      814 +                  {/* Always-visible sub-nav */}              
+      815 +                  {subItems.length > 0 && (                   
+      816 +                    <div className="ml-4 pl-3 border-l border-
+          +teal-400/40 mt-0.5 mb-1.5 space-y-px">                        
+      817 +                      {subItems.map(item => {                 
+      818 +                        const subActive = activeSectionId === 
+          +sec.id && activeSub === item.id                               
+      819 +                        const subFlags  = getSubFlagCount(sec.
+          +id, item.id, survey)                                          
+      820 +                        const subProg   = getSubProgress(sec.i
+          +d, item.id, survey)                                           
+      821 +                        const subDone   = subProg.total > 0 &&
+          + subProg.marked === subProg.total                             
+      822 +                        return (                              
+      823 +                          <button                             
+      824 +                            key={item.id}                     
+      825 +                            onClick={() => { setActiveSectionI
+          +d(sec.id); setActiveSub(item.id) }}                           
+      826 +                            className={clsx(                  
+      827 +                              'w-full text-left px-2.5 py-1.5 
+          +rounded-md text-xs transition-colors flex items-center justify
+          +-between gap-1',                                              
+      828 +                              subActive ? 'bg-teal-400/15 text
+          +-teal-700 font-semibold' : 'text-std-gray-lm hover:bg-hover-gr
+          +ay-lm hover:text-black'                                       
+      829 +                            )}                                
+      830 +                          >                                   
+      831 +                            <span className="truncate">{item.l
+          +abel}</span>                                                  
+      832 +                            <span className="flex items-center
+          + gap-1 flex-shrink-0">                                        
+      833 +                              {subDone && <span className="w-3
+          +.5 h-3.5 rounded-full bg-green-600/15 flex items-center justif
+          +y-center"><Check size={8} className="text-green-600" /></span>
+          +}                                                             
+      834 +                              {subFlags > 0 && <span className
+          +="flex items-center gap-0.5 text-[9px] text-red-600 bg-red-600
+          +/10 rounded-full px-1 py-0.5 border border-red-600/20 font-sem
+          +ibold"><Flag size={7} />{subFlags}</span>}                    
+      835 +                            </span>                           
+      836 +                          </button>                           
+      837 +                        )                                     
+      838 +                      })}                                     
+      839 +                    </div>                                    
+      840 +                  )}                                          
+      841                  </div>
+      842                )
+      843              })}
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 5 lines, removed 1 line
+      850            {/* Sticky section header */}
+      851            <div className="sticky top-0 z-10 bg-bg-gray-lm/95 b
+           ackdrop-blur-sm border-b border-nav-gray/40 px-6 py-3 flex ite
+           ms-center justify-between flex-shrink-0">
+      852              <div>
+      853 -              <h2 className="text-base font-bold text-teal-900
+          -">{SECTIONS.find(s => s.id === activeSectionId)?.label}</h2>  
+      853 +              <div className="flex items-center gap-2">       
+      854 +                <span className="text-[10px] font-semibold tex
+          +t-std-gray-lm">{SECTIONS.find(s => s.id === activeSectionId)?.
+          +label}</span>                                                 
+      855 +                {activeSub && <><span className="text-std-gray
+          +-dm text-[10px]">/</span><span className="text-[10px] font-sem
+          +ibold text-teal-600">{getSubLabel(activeSectionId, activeSub, 
+          +survey)}</span></>}                                           
+      856 +              </div>                                          
+      857 +              <h2 className="text-base font-bold text-teal-900
+          + mt-0.5">{getSubLabel(activeSectionId, activeSub, survey)}</h2
+          +>                                                             
+      858                <p className="text-xs text-std-gray-lm mt-0.5">
+      859                  {secProgress.marked} of {secProgress.total} fi
+           elds checked
+      860                  {secFlags > 0 && <span className="ml-2 text-re
+           d-600 font-semibold">· {secFlags} flagged</span>}
+
+● Now split the content area — overview into 3 sub-views, gamma into
+  overall_views + per-RRU:
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 1 line, removed 1 line
+      875              <div className="px-6 py-5 space-y-6">
+      876  
+      877                {/* ── Service COP Overview ── */}
+      878 -              {activeSectionId === 'overview' && (            
+      878 +              {activeSectionId === 'overview' && activeSub ===
+          + 'site_info' && (                                             
+      879                  <>
+      880                    {/* Site information (read-only) */}
+      881                    <div className="rounded-xl border border-nav
+           -gray bg-white overflow-hidden">
+
+● Now find where the site info fields section ends and the site photos section
+  begins, to split them. I need to find the exact closing of the overview <>
+  block and replace the structure. Let me read the current state of that area:
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I can see the full block. I'll replace from the Glamour Photo section
+  through the end of the gamma section in one edit:
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 83 lines, removed 77 lines
+      1068                          </div>
+      1069                        </div>
+      1070  
+      1071 -                      {/* Glamour Photo */}                  
+      1072 -                      <div className={clsx('px-5 py-3.5 round
+           -ed-xl border transition-colors', survey.glamourPhoto.flagged 
+           -? 'bg-red-600/[0.04] border-red-600/25' : 'bg-white border-na
+           -v-gray')}>                                                   
+      1073 -                        <div className="flex items-center gap
+           --2 mb-3">                                                    
+      1074 -                          <span className="text-sm font-semib
+           -old text-black">Glamour Photo</span>                         
+      1075 -                          <span className="text-[10px] font-s
+           -emibold text-red-600 bg-red-600/8 border border-red-600/15 ro
+           -unded-full px-2 py-0.5">Required</span>                      
+      1076 -                          {survey.glamourPhoto.flagged && <sp
+           -an className="text-[10px] font-semibold text-red-600 bg-red-6
+           -00/10 border border-red-600/20 rounded-full px-2 py-0.5 flex 
+           -items-center gap-1"><Flag size={9} /> Flagged</span>}        
+      1077 -                        </div>                               
+      1078 -                        <div className="flex items-center gap
+           --3">                                                         
+      1079 -                          <div                               
+      1080 -                            onClick={() => setSurvey(p => ({ 
+           -...p, glamourPhoto: { ...p.glamourPhoto, filename: p.glamourP
+           -hoto.filename ? null : 'glamour_01.jpg', marked: !p.glamourPh
+           -oto.filename } }))}                                          
+      1081 -                            className={clsx('w-32 h-24 rounde
+           -d-xl border-2 cursor-pointer transition-all flex flex-col ite
+           -ms-center justify-center gap-1.5 relative overflow-hidden',  
+      1082 -                              survey.glamourPhoto.filename ? 
+           -'border-green-600/30 bg-gradient-to-br from-slate-100 to-slat
+           -e-200 hover:opacity-80' : 'border-dashed border-nav-gray hove
+           -r:border-teal-400/60 hover:bg-teal-400/5'                    
+      1083 -                            )}>                              
+      1084 -                            {survey.glamourPhoto.filename ? (
+      1085 -                              <>                             
+      1086 -                                <FileImage size={24} classNam
+           -e="text-teal-400/60" />                                      
+      1087 -                                <p className="text-[10px] tex
+           -t-std-gray-lm text-center px-1 truncate">{survey.glamourPhoto
+           -.filename}</p>                                               
+      1088 -                                {survey.glamourPhoto.marked &
+           -& <Check size={13} className="absolute top-1.5 right-1.5 text
+           --green-600 bg-white rounded-full p-0.5 shadow-sm" />}        
+      1089 -                              </>                            
+      1090 -                            ) : (                            
+      1091 -                              <>                             
+      1092 -                                <Camera size={20} className="
+           -text-std-gray-dm" />                                         
+      1093 -                                <p className="text-[10px] tex
+           -t-std-gray-dm">Add photo</p>                                 
+      1094 -                              </>                            
+      1095 -                            )}                               
+      1096 -                          </div>                             
+      1097 -                          <div className="flex flex-col gap-1
+           -.5">                                                         
+      1098 -                            {flagBtn(survey.glamourPhoto.flag
+           -ged, () => setSurvey(p => ({ ...p, glamourPhoto: { ...p.glamo
+           -urPhoto, flagged: !p.glamourPhoto.flagged } })))}            
+      1099 -                            {checkBtn(survey.glamourPhoto.mar
+           -ked, () => setSurvey(p => ({ ...p, glamourPhoto: { ...p.glamo
+           -urPhoto, marked: !p.glamourPhoto.marked } })))}              
+      1100 -                          </div>                             
+      1101 -                        </div>                               
+      1102 -                      </div>                                 
+      1071                      </div>
+      1072                    </div>
+      1073 +                </>                                          
+      1074 +              )}                                             
+      1075  
+      1106 -                  {/* Site & Log Book Photos */}             
+      1107 -                  <div>                                      
+      1108 -                    <p className="text-[10px] font-bold text-
+           -std-gray-lm uppercase tracking-widest mb-3">Site &amp; Log Bo
+           -ok Photos</p>                                                
+      1109 -                    <div className="grid grid-cols-1 sm:grid-
+           -cols-2 xl:grid-cols-3 gap-3">                                
+      1110 -                      {survey.sitePhotoGroups.map(pg => (    
+      1111 -                        <PhotoGroupCard                      
+      1112 -                          key={pg.id}                        
+      1113 -                          group={pg}                         
+      1114 -                          onToggleSlot={slotId => updateOverv
+           -iewPhotoSlot(pg.id, slotId, s => ({ filename: s.filename ? nu
+           -ll : `photo_${Date.now()}.jpg`, marked: !s.filename }))}     
+      1115 -                          onAddSlot={() => addOverviewPhotoSl
+           -ot(pg.id)}                                                   
+      1116 -                          onToggleFlag={slotId => updateOverv
+           -iewPhotoSlot(pg.id, slotId, s => ({ flagged: !s.flagged }))} 
+      1117 -                        />                                   
+      1118 -                      ))}                                    
+      1076 +              {/* ── Overview: Glamour Photo ── */}          
+      1077 +              {activeSectionId === 'overview' && activeSub ==
+           += 'glamour' && (                                             
+      1078 +                <div>                                        
+      1079 +                  <p className="text-[10px] font-bold text-st
+           +d-gray-lm uppercase tracking-widest mb-3">Glamour Photo</p>  
+      1080 +                  <div className={clsx('px-5 py-3.5 rounded-x
+           +l border transition-colors', survey.glamourPhoto.flagged ? 'b
+           +g-red-600/[0.04] border-red-600/25' : 'bg-white border-nav-gr
+           +ay')}>                                                       
+      1081 +                    <div className="flex items-center gap-2 m
+           +b-3">                                                        
+      1082 +                      <span className="text-sm font-semibold 
+           +text-black">Glamour Photo</span>                             
+      1083 +                      <span className="text-[10px] font-semib
+           +old text-red-600 bg-red-600/8 border border-red-600/15 rounde
+           +d-full px-2 py-0.5">Required</span>                          
+      1084 +                      {survey.glamourPhoto.flagged && <span c
+           +lassName="text-[10px] font-semibold text-red-600 bg-red-600/1
+           +0 border border-red-600/20 rounded-full px-2 py-0.5 flex item
+           +s-center gap-1"><Flag size={9} /> Flagged</span>}            
+      1085                      </div>
+      1086 +                    <div className="flex items-center gap-3">
+      1087 +                      <div                                   
+      1088 +                        onClick={() => setSurvey(p => ({ ...p
+           +, glamourPhoto: { ...p.glamourPhoto, filename: p.glamourPhoto
+           +.filename ? null : 'glamour_01.jpg', marked: !p.glamourPhoto.
+           +filename } }))}                                              
+      1089 +                        className={clsx('w-32 h-24 rounded-xl
+           + border-2 cursor-pointer transition-all flex flex-col items-c
+           +enter justify-center gap-1.5 relative overflow-hidden',      
+      1090 +                          survey.glamourPhoto.filename ? 'bor
+           +der-green-600/30 bg-gradient-to-br from-slate-100 to-slate-20
+           +0 hover:opacity-80' : 'border-dashed border-nav-gray hover:bo
+           +rder-teal-400/60 hover:bg-teal-400/5'                        
+      1091 +                        )}>                                  
+      1092 +                        {survey.glamourPhoto.filename ? (    
+      1093 +                          <>                                 
+      1094 +                            <FileImage size={24} className="t
+           +ext-teal-400/60" />                                          
+      1095 +                            <p className="text-[10px] text-st
+           +d-gray-lm text-center px-1 truncate">{survey.glamourPhoto.fil
+           +ename}</p>                                                   
+      1096 +                            {survey.glamourPhoto.marked && <C
+           +heck size={13} className="absolute top-1.5 right-1.5 text-gre
+           +en-600 bg-white rounded-full p-0.5 shadow-sm" />}            
+      1097 +                          </>                                
+      1098 +                        ) : (                                
+      1099 +                          <>                                 
+      1100 +                            <Camera size={20} className="text
+           +-std-gray-dm" />                                             
+      1101 +                            <p className="text-[10px] text-st
+           +d-gray-dm">Add photo</p>                                     
+      1102 +                          </>                                
+      1103 +                        )}                                   
+      1104 +                      </div>                                 
+      1105 +                      <div className="flex flex-col gap-1.5">
+      1106 +                        {flagBtn(survey.glamourPhoto.flagged,
+           + () => setSurvey(p => ({ ...p, glamourPhoto: { ...p.glamourPh
+           +oto, flagged: !p.glamourPhoto.flagged } })))}                
+      1107 +                        {checkBtn(survey.glamourPhoto.marked,
+           + () => setSurvey(p => ({ ...p, glamourPhoto: { ...p.glamourPh
+           +oto, marked: !p.glamourPhoto.marked } })))}                  
+      1108 +                      </div>                                 
+      1109 +                    </div>                                   
+      1110                    </div>
+      1121 -                </>                                          
+      1111 +                </div>                                       
+      1112                )}
+      1113  
+      1124 -              {/* ── Gamma Sector ── */}                     
+      1125 -              {activeSectionId === 'gamma' && (              
+      1126 -                <>                                           
+      1127 -                  {/* Overall Views */}                      
+      1128 -                  <div>                                      
+      1129 -                    <p className="text-[10px] font-bold text-
+           -std-gray-lm uppercase tracking-widest mb-3">Overall Views</p>
+      1130 -                    <div className="grid grid-cols-1 sm:grid-
+           -cols-2 gap-3">                                               
+      1131 -                      {survey.gammaOverallViews.map(pg => (  
+      1132 -                        <PhotoGroupCard                      
+      1133 -                          key={pg.id}                        
+      1134 -                          group={pg}                         
+      1135 -                          onToggleSlot={slotId => updateGamma
+           -OverviewSlot(pg.id, slotId, s => ({ filename: s.filename ? nu
+           -ll : `photo_${Date.now()}.jpg`, marked: !s.filename }))}     
+      1136 -                          onAddSlot={() => addGammaOverviewSl
+           -ot(pg.id)}                                                   
+      1137 -                          onToggleFlag={slotId => updateGamma
+           -OverviewSlot(pg.id, slotId, s => ({ flagged: !s.flagged }))} 
+      1138 -                        />                                   
+      1139 -                      ))}                                    
+      1140 -                    </div>                                   
+      1114 +              {/* ── Overview: Site & Log Book Photos ── */} 
+      1115 +              {activeSectionId === 'overview' && activeSub ==
+           += 'site_photos' && (                                         
+      1116 +                <div>                                        
+      1117 +                  <p className="text-[10px] font-bold text-st
+           +d-gray-lm uppercase tracking-widest mb-3">Site &amp; Log Book
+           + Photos</p>                                                  
+      1118 +                  <div className="grid grid-cols-1 sm:grid-co
+           +ls-2 xl:grid-cols-3 gap-3">                                  
+      1119 +                    {survey.sitePhotoGroups.map(pg => (      
+      1120 +                      <PhotoGroupCard                        
+      1121 +                        key={pg.id}                          
+      1122 +                        group={pg}                           
+      1123 +                        onToggleSlot={slotId => updateOvervie
+           +wPhotoSlot(pg.id, slotId, s => ({ filename: s.filename ? null
+           + : `photo_${Date.now()}.jpg`, marked: !s.filename }))}       
+      1124 +                        onAddSlot={() => addOverviewPhotoSlot
+           +(pg.id)}                                                     
+      1125 +                        onToggleFlag={slotId => updateOvervie
+           +wPhotoSlot(pg.id, slotId, s => ({ flagged: !s.flagged }))}   
+      1126 +                      />                                     
+      1127 +                    ))}                                      
+      1128                    </div>
+      1129 +                </div>                                       
+      1130 +              )}                                             
+      1131  
+      1143 -                  {/* RRU Units */}                          
+      1132 +              {/* ── Gamma: Overall Views ── */}             
+      1133 +              {activeSectionId === 'gamma' && activeSub === '
+           +overall_views' && (                                          
+      1134 +                <div>                                        
+      1135 +                  <p className="text-[10px] font-bold text-st
+           +d-gray-lm uppercase tracking-widest mb-3">Overall Views</p>  
+      1136 +                  <div className="grid grid-cols-1 sm:grid-co
+           +ls-2 gap-3">                                                 
+      1137 +                    {survey.gammaOverallViews.map(pg => (    
+      1138 +                      <PhotoGroupCard                        
+      1139 +                        key={pg.id}                          
+      1140 +                        group={pg}                           
+      1141 +                        onToggleSlot={slotId => updateGammaOv
+           +erviewSlot(pg.id, slotId, s => ({ filename: s.filename ? null
+           + : `photo_${Date.now()}.jpg`, marked: !s.filename }))}       
+      1142 +                        onAddSlot={() => addGammaOverviewSlot
+           +(pg.id)}                                                     
+      1143 +                        onToggleFlag={slotId => updateGammaOv
+           +erviewSlot(pg.id, slotId, s => ({ flagged: !s.flagged }))}   
+      1144 +                      />                                     
+      1145 +                    ))}                                      
+      1146 +                  </div>                                     
+      1147 +                </div>                                       
+      1148 +              )}                                             
+      1149 +                                                             
+      1150 +              {/* ── Gamma: RRU Units (one per sub) ── */}   
+      1151 +              {activeSectionId === 'gamma' && activeSub !== '
+           +overall_views' && activeSub !== null && (() => {             
+      1152 +                const rru = survey.gammaRRUs.find(r => r.id =
+           +== activeSub)                                                
+      1153 +                if (!rru) return null                        
+      1154 +                return (                                     
+      1155                    <div>
+      1156                      <div className="flex items-center justify
+            -between mb-3">
+      1146 -                      <p className="text-[10px] font-bold tex
+           -t-std-gray-lm uppercase tracking-widest">RRU Units ({survey.g
+           -ammaRRUs.length})</p>                                        
+      1157 +                      <p className="text-[10px] font-bold tex
+           +t-std-gray-lm uppercase tracking-widest">RRU Unit</p>        
+      1158                        <button
+      1148 -                        onClick={() => setSurvey(prev => ({ .
+           -..prev, gammaRRUs: [...prev.gammaRRUs, makeRRU(`rru_${Date.no
+           -w()}`, '', '')] }))}                                         
+      1159 +                        onClick={() => setSurvey(prev => {   
+      1160 +                          const newRRU = makeRRU(`rru_${Date.
+           +now()}`, '', '')                                             
+      1161 +                          return { ...prev, gammaRRUs: [...pr
+           +ev.gammaRRUs, newRRU] }                                      
+      1162 +                        })}                                  
+      1163                          className="flex items-center gap-1.5 
+            text-xs font-semibold text-teal-600 hover:text-teal-700 trans
+            ition-colors"
+      1164                        >
+      1165                          <Plus size={13} /> Add RRU Unit
+      1166                        </button>
+      1167                      </div>
+      1154 -                    <div className="space-y-4">              
+      1155 -                      {survey.gammaRRUs.map(rru => (         
+      1156 -                        <RRUCard                             
+      1157 -                          key={rru.id}                       
+      1158 -                          rru={rru}                          
+      1159 -                          onUpdate={patch => updatePhotoSlotO
+           -nRRU(rru.id, patch)}                                         
+      1160 -                        />                                   
+      1161 -                      ))}                                    
+      1162 -                    </div>                                   
+      1168 +                    <RRUCard rru={rru} onUpdate={patch => upd
+           +atePhotoSlotOnRRU(rru.id, patch)} />                         
+      1169                    </div>
+      1164 -                </>                                          
+      1165 -              )}                                             
+      1170 +                )                                            
+      1171 +              })()}                                          
+      1172  
+      1173                {/* ── Catch All ── */}
+      1174                {activeSectionId === 'catch_all' && (
+
+● Now let me verify the file compiles cleanly by checking for any obvious
+  structural issues:
+
+● Bash(cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc
+      --noEmit 2>&1 | head -40)
+  ⎿  src/pages/ServiceCOPQCPage.tsx(447,70): error TS7006: Parameter 's' im
+     plicitly has an 'any' type.
+     src/pages/ServiceCOPQCPage.tsx(447,70): error TS2560: Value of type '(
+     … +8 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● updatePhotoSlot in RRUCard takes Partial<PhotoSlot> but the calls pass an
+  updater function. Pre-existing bug — fix by making it accept an updater:
+
+● Update(src\pages\ServiceCOPQCPage.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      346    const progress = getRRUProgress(rru)
+      347    const flags    = getRRUFlagCount(rru)
+      348  
+      349 -  function updatePhotoSlot(groupId: string, slotId: string, pa
+          -tch: Partial<PhotoSlot>) {                                    
+      349 +  function updatePhotoSlot(groupId: string, slotId: string, up
+          +dater: (s: PhotoSlot) => Partial<PhotoSlot>) {                
+      350      onUpdate({
+      351        photoGroups: rru.photoGroups.map(pg =>
+      352          pg.id === groupId
+      353 -          ? { ...pg, slots: pg.slots.map(s => s.id === slotId 
+          -? { ...s, ...patch } : s) }                                   
+      353 +          ? { ...pg, slots: pg.slots.map(s => s.id === slotId 
+          +? { ...s, ...updater(s) } : s) }                              
+      354            : pg
+      355        ),
+      356      })
+
+● Bash(cd "c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul" && npx tsc
+      --noEmit 2>&1 | head -20)
+  ⎿  (No output)
+
+● Clean. Here's a summary of what was done:
+
+  Sub-navigation: The sidebar for Overview now shows 3 always-visible sub-items
+  (Site Info, Glamour Photo, Site & Log Book Photos), and Gamma shows Overall
+  Views + one entry per RRU unit. Each sub-item shows a green check when done
+  and a red flag badge when flagged. Clicking a top-level section button jumps
+  to its first sub.
+
+  Content: Each sub-section renders independently — navigating no longer means
+  scrolling through a long page; you step through discrete views. The footer
+  Prev/Next steps through every sub-section in order across all three top-level
+  sections.
+
+  Sticky header: Now shows a breadcrumb (Service COP Overview / Site Info) with
+  the sub-section name as the main heading and its own progress/flag count.
+
+  Flags & statuses added:
+  - Crane or Man-Lift → flagged, not yet marked
+  - Return Visit Needed → flagged
+  - Work Completed → value set but not yet marked for review
+  - Compound Cleaned Photos → first photo flagged
+  - RRU New Serial Number → flagged, not yet marked
+
+❯ Unknown skill: export                                                         

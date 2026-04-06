@@ -1,0 +1,340 @@
+# UI-Overhaul Session Summary
+# Branch: main | Stack: React 18 + TypeScript + Vite 6 + Tailwind CSS v3 + React Router v6
+
+---
+
+## Files Modified
+
+- src/App.tsx
+- src/pages/GuyFacilitiesQCPage.tsx  (primary, heavily rewritten)
+- src/pages/QCEditorPage.tsx
+- src/pages/ComponentLibraryPage.tsx
+- src/data/mockData.ts
+
+---
+
+## 1. Routing (App.tsx)
+
+Added a specific route for Guy Facilities BEFORE the generic survey route to prevent
+route shadowing:
+
+  <Route path="surveys/survey_guy/qc" element={<GuyFacilitiesQCPage />} />
+  <Route path="surveys/:surveyId/qc"   element={<QCEditorPage />} />
+
+
+---
+
+## 2. GuyFacilitiesQCPage.tsx — Full Rebuild
+
+### Architecture
+Mirrors QCEditorPage shell exactly: toolbar → sidebar → content area → footer nav.
+
+### Sections (sidebar + content)
+  - Guy Compounds
+  - Guy Photos
+  - Deficiencies
+  - Catch All
+
+### Guy Compounds — Drill-in pattern (not accordion)
+- Compounds section shows a responsive grid of nav cards (1/2/3 cols by breakpoint).
+- Clicking a card drills into that compound's own "page" (activeCompoundId state).
+- Breadcrumb in sticky header: "Guy Compounds › Compound B" — clicking "Guy Compounds"
+  returns to the list (setActiveCompoundId(null)).
+- Sidebar shows compound sub-items; clicking one sets activeCompoundId and
+  scrollIntoView (though with drill-in this is scroll-to-top of detail).
+- Footer nav steps through compounds in order, then advances to next section.
+
+### Compound Detail View (CompoundDetailView component)
+Three cards stacked:
+  1. Measurements — 2-column grid (Anchor Radius ft, Relative Elevation ft), each with
+     number input + flag button + check button.
+  2. Guy Wires — blue-header table (see below).
+  3. Photos — collapsible accordion with PhotoGroupRow per group.
+
+### Wire Table (WireTable component)
+Columns: Level | Pos. (L/R select) | Size (# Strands) | Strength Rating |
+         Preform Color | Measured Tension (lbf) | Notes | Actions
+
+- NOTE: Tension Propriety column was removed (not needed).
+- overflow-x-auto scroll container; min-w-[640px] so it scrolls cleanly on small screens.
+- Per-row actions: Flag (red) | Mark (indigo) | Remove (Minus → pending confirm).
+- "Add Wire" footer button (indigo text).
+- Empty state row with colspan.
+
+### Deficiencies — Flat accordion (not drill-in)
+All deficiencies live in one card (overflow-hidden) with divide-y between items.
+Each DeficiencyAccordion:
+  - Header: ChevronDown (rotates) + issue name + Flagged chip + photo count badge
+  - Expanded fields rendered via DefFieldRow (3px red/green left bar + label + value box):
+      Issue (select), Severity (select 1-Critical / 2-Moderate / 3-Low),
+      Compounds Affected (LocationMultiSelect), Notes (textarea), Photo (thumbnail + link)
+  - Flag + Mark Reviewed action buttons at bottom of each accordion
+  - Remove button (Minus) on the accordion header
+- Sidebar sub-items: clicking scrolls to that deficiency card via
+  document.getElementById(`def_${id}`).scrollIntoView(...)
+
+### Types
+  GuyWire: id, guyLevel, position (L|R|''), size, strengthRating, preformColorCode,
+           measuredTension, notes, flagged, marked
+           (tensionPropriety field still in type but column removed from table)
+
+  GuyCompound: id, label, anchorRadius, anchorRadiusFlagged, anchorRadiusMarked,
+               relativeElevation, relativeElevationFlagged, relativeElevationMarked,
+               photoGroups, wires
+
+  GuySurvey: compounds (9: A B C AA BB CC AAA BBB CCC), guyPhotos, deficiencies, catchAll
+
+### Mock Data
+  Compound A: 4 wires (levels 1R/1L/2R/2L), anchorRadius=116, relativeElevation=0
+  Compound B: 4 wires all GOOD, anchorRadius=116, relativeElevationFlagged=true
+  C–CCC: empty
+  4 deficiencies with severities 1-3
+
+### Progress Helpers
+  getCompoundProgress, getCompoundFlagCount, getSectionProgress,
+  getSectionFlagCount, getOverallProgress — all wire into sidebar badges and
+  toolbar progress bar.
+
+### State
+  activeCompoundId: string | null   — which compound detail is open
+  activeDeficiencyId: string | null — which sidebar deficiency is highlighted
+  activeSectionIdxRaw: number       — current top-level section index
+  sidebarCollapsed, headerCollapsed, navSearch, rightTab, saveState, surveyComplete
+
+
+---
+
+## 3. QCEditorPage.tsx — Small Changes
+
+- YesNoField: Yes/No active state changed from teal/sidebar to indigo-500.
+- FeedlineTable "Add Feedline" button: teal → indigo-500.
+
+
+---
+
+## 4. ComponentLibraryPage.tsx — QC Data Table Added
+
+New nav item "QC Data Table" (id: qc-table) added to sidebar.
+New Section renders a static demo of the blue-header wire table pattern:
+  - bg-[#4a86c8] thead with white bold labels
+  - overflow-x-auto wrapper
+  - Sample rows with Flag / Check (indigo) / Remove action buttons
+  - "Add Row" footer in indigo
+
+
+---
+
+## 5. mockData.ts
+
+Guy Facilities survey status: 'Not Started' → 'In Progress'
+(Reflects on QA Dashboard immediately.)
+
+
+---
+
+## Design Tokens in Use
+
+  bg-[#4a86c8]         — blue QC table header
+  bg-sidebar (#002832) — dark nav
+  indigo-500           — check/mark buttons, add row, pills, Yes/No active
+  teal-400/300         — progress bars, focus rings, nav active states
+  red-600              — flag buttons, flagged chips, left bar (unmarked field)
+  green-600            — marked/complete states, left bar (marked field)
+  bg-bg-gray-lm        — light input backgrounds
+  border-nav-gray      — standard borders
+
+
+---
+
+## TypeScript
+
+All changes pass `npx tsc --noEmit` with zero errors.
+
+
+---
+---
+
+
+# Session 2 Summary
+# Branch: main | Continued from Session 1
+
+---
+
+## Files Modified
+
+- src/pages/PlumbTwistQCPage.tsx  (layout rewrite + field style update)
+- src/pages/GuyFacilitiesQCPage.tsx  (site info card added)
+- src/pages/QCEditorPage.tsx  (site info card + FeedlineTable style)
+- src/pages/ServiceCOPQCPage.tsx  (new file)
+- src/data/mockData.ts
+- src/App.tsx
+
+---
+
+## 1. PlumbTwistQCPage.tsx — Full Layout Rewrite
+
+Replaced simple scrollable main with the standard layout pattern (sidebar + sticky header
++ scrollable content + footer nav bar) matching GuyFacilitiesQCPage.
+
+### Sidebar
+- Boxed card nav items with progress bar and flag badges per section.
+- Legs sub-nav always visible (not gated on active state):
+    Elevations button + one button per leg.
+- Clicking a top-level section jumps to it; clicking a leg sets activeLegView.
+
+### Nav steps (flat array)
+  navSteps = [
+    { sectionId: 'summary', legView: null },
+    { sectionId: 'legs',    legView: null },       // legs overview
+    { sectionId: 'legs',    legView: 'elevations' },
+    ...survey.legs.map(l => ({ sectionId: 'legs', legView: l.id })),
+  ]
+  currentNavIdx via findIndex — powers goPrev/goNext/getPrevLabel/getNextLabel.
+
+### Survey Fields (Plumb & Twist section)
+Replaced plain inputs with the ComponentLibrary FieldDemo card pattern:
+  - px-5 py-3.5 rounded-xl border per field
+  - Background tint on flagged (red-600/4%) or marked (opacity-75)
+  - Label + Required/Flagged badge row above input + flag/check buttons row
+  Fields: Structure Type, Number of Legs, Structure Steel Height (locked/read-only),
+          Base Face Width
+
+### Footer nav
+  Prev/Next buttons + Mark All Checked (scoped to current sub-view).
+
+
+---
+
+## 2. GuyFacilitiesQCPage.tsx — Site Info Card
+
+Added a read-only Site Information card at the top of the Compounds Overview
+(when activeCompoundId is null), before the compound grid.
+
+  Card fields: Site Name, Site ID, Survey Type, Customer, Technician, Structure
+  Styling: rounded-xl border, bg-bg-gray-lm/40 header row, 2-col grid of label/value pairs.
+
+
+---
+
+## 3. QCEditorPage.tsx — Two Changes
+
+### Site Info Card
+Rendered when activeSectionIdx === 0 && !activeItemId (i.e. first section, no drill-in).
+  Fields: Site Name, Site ID, Survey Type, Customer, Technician, Coordinates
+
+### FeedlineTable Style Update
+Removed the dark bg-sidebar title row. Now uses a single bg-[#4a86c8] column header row
+matching the ComponentLibrary QC Data Table pattern.
+Feedline count moved inline into the first <th>:
+  <span className="ml-auto text-[11px] text-white/50 font-normal">{n} feedline(s)</span>
+
+
+---
+
+## 4. ServiceCOPQCPage.tsx — New Page (~750 lines)
+
+Built from scratch based on screenshots of the old dark Service COP UI.
+
+### Types
+  PhotoSlot: id, filename, flagged, marked
+  PhotoGroup: id, label, slots, required?
+  RRUUnit: id, existingSerial+Flagged+Marked, newSerial+Flagged+Marked, photoGroups
+  CatchAllItem: id, description, flagged, marked
+  COPSurvey: site info fields, all overview fields (+Flagged+Marked each),
+             glamourPhoto, sitePhotoGroups, gammaOverallViews, gammaRRUs, catchAll
+
+### Sub-components
+  PhotoGroupCard
+    - rounded-xl card, header with label + "N of M photos" + required/flagged info
+    - 3-col grid of aspect-[4/3] photo slots
+    - Filled slot: gradient bg + FileImage icon + filename + green Check overlay
+    - Empty slot: dashed border + Camera icon + "Add photo"
+    - Flag button: absolute top-left, visible on hover, stays visible when flagged
+    - Add slot button at end of grid
+
+  RRUCard
+    - Unit header with progress bar + flag count
+    - Two FieldDemo-style serial number fields (Existing + New)
+    - 2-col grid of PhotoGroupCards for 6 photo groups
+
+### Sections & Sub-sections
+
+  Overview:
+    Site Info      — 8 editable fields (EUS Appt No, eNB Name, Crane, Ticket Type,
+                     Sectors Worked On, Work Completed, Return Visit, Resolution Type)
+    Glamour Photo  — single large photo slot with flag/check
+    Site & Log Book Photos — 10 PhotoGroupCards in responsive 1/2/3-col grid
+
+  Gamma Sector:
+    Overall Views  — 2 PhotoGroupCards
+    RRU unit(s)   — one RRUCard per RRU (each gets its own sub-nav entry)
+
+  Catch All — textarea items, add/remove
+
+### Sub-navigation
+  Sidebar: always-visible sub-items per section with per-sub progress check + flag badge.
+  Flat navSteps[] array steps through every sub in order across all three sections.
+  Sticky header: breadcrumb (Section / Sub) + sub-section name as h2 + progress bar.
+  Footer Prev/Next labels show the adjacent sub-section name.
+
+### Mock data flags
+  craneFlagged: true (marked: false)
+  returnVisitFlagged: true
+  workMarked: false
+  Compound Cleaned photo: flagged: true, marked: false
+  RRU newSerialFlagged: true, newSerialMarked: false
+
+### Standard features
+  Autosave (1500ms debounce), Flags slide-over, AI Analysis slide-over (mock, 2s delay),
+  Mark Complete modal, overall progress bar in toolbar.
+
+
+---
+
+## 5. mockData.ts
+
+  survey_pt (Plumb & Twist): status 'Not Started' → 'In Progress'
+  survey_cop (Service COP):  status 'Not Started' → 'In Progress'
+
+
+---
+
+## 6. App.tsx — Route Added
+
+  import ServiceCOPQCPage from './pages/ServiceCOPQCPage'
+  <Route path="surveys/survey_cop/qc" element={<ServiceCOPQCPage />} />
+  // inserted before the generic surveys/:surveyId/qc catch-all route
+  // (same pattern as survey_guy and survey_pt specific routes)
+
+
+---
+
+## TypeScript
+
+All changes pass `npx tsc --noEmit` with zero errors.
+
+---
+
+Session 1 — GuyFacilitiesQCPage, QCEditorPage, ComponentLibraryPage
+- Built GuyFacilitiesQCPage from scratch matching the QCEditorPage shell. 
+- Compounds use a drill-in pattern (grid of nav cards → compound detail with measurements, wire table, photos). 
+- Deficiencies are flat accordions. 
+- Added AI Analysis to both Guy and Compound pages. 
+- Added site info cards to Guy Facilities, Compound QC, and Plumb & Twist. 
+- Updated the QC Data Table component in ComponentLibraryPage, switched Yes/No and pill buttons to indigo, and updated FeedlineTable to drop the dark title row. 
+- Guy Facilities marked In Progress on the dashboard.
+Session 2 — PlumbTwistQCPage, ServiceCOPQCPage
+- PlumbTwist: Full layout rewrite — replaced the simple <main> with the standard sidebar + sticky header + footer nav pattern. 
+- Sidebar has boxed card nav items with always-visible legs sub-nav. 
+- Footer nav uses a flat navSteps[] array stepping through summary → legs overview → elevations → each leg. 
+- Survey Fields replaced with ComponentLibrary FieldDemo card style. 
+- Plumb & Twist dashboard status set to In Progress.
+ServiceCOPQCPage: New page built from scratch (~750 lines). 
+- Two reusable sub-components: PhotoGroupCard (3-col aspect-[4/3] photo grid with flag overlays and add slot button) and RRUCard (serial number fields + 2-col photo groups). 
+- Three sections with sub-navigation — Overview (Site Info, Glamour Photo, Site & Log Book Photos), Gamma Sector (Overall Views + one entry per RRU), and Catch All. 
+- Sidebar always shows sub-items with per-sub progress and flag badges. 
+- Flat navSteps[] powers footer Prev/Next across all sub-sections. 
+- Mock data includes several flags (crane, return visit, work completed, a photo slot, RRU serial). 
+- All standard features present: autosave, Flags slide-over, AI Analysis slide-over, Mark Complete modal. 
+- Route added to App.tsx, status set to In Progress.
+Still not built: Structure Climb QC editor, Structure Flight QC editor.
