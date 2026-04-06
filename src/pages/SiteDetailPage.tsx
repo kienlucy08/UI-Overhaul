@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   MapPin, ChevronRight, ExternalLink, Edit2, Copy, Check,
   Building2, CalendarDays, Shield, TowerControl, Plus, Download,
-  FileText, ScanLine, Share2
+  FileText, ScanLine, Share2, Paperclip
 } from 'lucide-react'
 import { mockSite, mockSiteSummary } from '../data/mockData'
 import clsx from 'clsx'
@@ -35,11 +35,12 @@ const siteFields = [
 ]
 
 const statCards = [
-  { label: 'Structures',  value: mockSiteSummary.structureCount, icon: TowerControl,  iconColor: 'text-teal-400',   bg: 'bg-teal-400/8',   valColor: 'text-teal-900' },
-  { label: 'Compounds',   value: mockSiteSummary.compoundCount,  icon: Building2,     iconColor: 'text-indigo-500', bg: 'bg-indigo-500/8', valColor: 'text-indigo-500' },
-  { label: 'Site Visits', value: mockSiteSummary.siteVisitCount, icon: CalendarDays,  iconColor: 'text-amber-600',  bg: 'bg-amber-500/8',  valColor: 'text-amber-600' },
-  { label: 'Scans',       value: mockSiteSummary.scanCount,      icon: ScanLine,      iconColor: 'text-teal-300',   bg: 'bg-teal-300/8',   valColor: 'text-teal-300' },
-  { label: 'Reports',     value: mockSiteSummary.reportCount,    icon: FileText,      iconColor: 'text-red-600',    bg: 'bg-red-600/8',    valColor: 'text-red-600' },
+  { label: 'Structures',  value: mockSiteSummary.structureCount,       icon: TowerControl,  iconColor: 'text-teal-400',    bg: 'bg-teal-400/8',   valColor: 'text-teal-900' },
+  { label: 'Compounds',   value: mockSiteSummary.compoundCount,        icon: Building2,     iconColor: 'text-indigo-500',  bg: 'bg-indigo-500/8', valColor: 'text-indigo-500' },
+  { label: 'Site Visits', value: mockSiteSummary.siteVisitCount,       icon: CalendarDays,  iconColor: 'text-amber-600',   bg: 'bg-amber-500/8',  valColor: 'text-amber-600' },
+  { label: 'Scans',       value: mockSiteSummary.scanCount,            icon: ScanLine,      iconColor: 'text-teal-300',    bg: 'bg-teal-300/8',   valColor: 'text-teal-300' },
+  { label: 'Attachments', value: mockSiteSummary.attachments.length,   icon: Paperclip,     iconColor: 'text-std-gray-lm', bg: 'bg-bg-gray-lm',   valColor: 'text-black' },
+  { label: 'Reports',     value: mockSiteSummary.reportCount,          icon: FileText,      iconColor: 'text-red-600',     bg: 'bg-red-600/8',    valColor: 'text-red-600' },
 ]
 
 export default function SiteDetailPage() {
@@ -91,7 +92,7 @@ export default function SiteDetailPage() {
             </div>
 
             {/* Stat counters */}
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-6 gap-3">
               {statCards.map(({ label, value, icon: Icon, iconColor, bg, valColor }) => (
                 <div key={label} className={clsx('rounded-xl p-3 flex flex-col items-center gap-2', bg)}>
                   <Icon size={20} className={iconColor} />

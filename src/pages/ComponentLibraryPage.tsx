@@ -68,13 +68,14 @@ function FieldDemo({ label, required, flagged, marked, aiSeverity, children }: {
   return (
     <div className={clsx(
       'px-5 py-3.5 rounded-lg border transition-colors',
-      isFlagged ? 'bg-red-600/[0.04] border-red-600/25' : isMarked ? 'bg-white border-nav-gray/60 opacity-75' : aiStyle ? `${aiStyle.row} border-nav-gray` : 'bg-white border-nav-gray'
+      isFlagged ? 'bg-red-600/[0.04] border-red-600/25' : isMarked ? 'bg-green-600/[0.04] border-green-600/20' : aiStyle ? `${aiStyle.row} border-nav-gray` : 'bg-white border-nav-gray'
     )}>
       {/* Label row */}
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span className="text-sm font-semibold text-black">{label}</span>
         {required && <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>}
         {isFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
+        {isMarked && <span className="text-[10px] font-semibold text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Check size={9} /> Reviewed</span>}
         {aiSeverity && aiStyle && (
           <span className={clsx('inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 border', aiStyle.badge)}>
             <Sparkles size={9} /> {aiStyle.label}
@@ -450,33 +451,124 @@ function PhotoField({ label, required }: { label: string; required?: boolean }) 
   )
 }
 
-function PhotoGrid({ count = 4, cols = 2 }: { count?: number; cols?: number }) {
-  const [captured, setCaptured] = useState<Set<number>>(new Set())
-  const toggle = (i: number) => setCaptured(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n })
+type DemoPhotoSlot = { id: string; filename: string | null; flagged: boolean; marked: boolean }
+type DemoPhotoGroup = { id: string; label: string; required: boolean; slots: DemoPhotoSlot[] }
+
+function makeDemoSlot(id: string, filename: string | null = null): DemoPhotoSlot {
+  return { id, filename, flagged: false, marked: !!filename }
+}
+function makeDemoGroup(id: string, label: string, count = 3, required = false, preloaded = 0): DemoPhotoGroup {
+  return {
+    id, label, required,
+    slots: Array.from({ length: count }, (_, i) =>
+      makeDemoSlot(`${id}_s${i}`, i < preloaded ? `${id}_photo_${String(i + 1).padStart(2, '0')}.jpg` : null)
+    ),
+  }
+}
+
+function PhotoGroupCard({
+  group,
+  onToggleSlot,
+  onAddSlot,
+  onToggleFlag,
+}: {
+  group: DemoPhotoGroup
+  onToggleSlot: (slotId: string) => void
+  onAddSlot: () => void
+  onToggleFlag: (slotId: string) => void
+}) {
+  const filled  = group.slots.filter(s => s.filename !== null).length
+  const flagged = group.slots.filter(s => s.flagged).length
   return (
-    <div className={clsx('grid gap-3', cols === 2 ? 'grid-cols-2' : 'grid-cols-3')}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} onClick={() => toggle(i)}
-          className={clsx('aspect-square rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center gap-2 relative overflow-hidden',
-            captured.has(i) ? 'border-green-600/30 bg-green-600/5' : 'border-dashed border-nav-gray hover:border-teal-400/60 hover:bg-teal-400/5'
-          )}>
-          {captured.has(i) ? (
-            <>
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200" />
-              <FileImage size={28} className="relative text-teal-400/50" />
-              <p className="relative text-[11px] text-std-gray-lm">photo_{String(i + 1).padStart(2, '0')}.jpg</p>
-              <Check size={16} className="absolute top-2 right-2 text-green-600 bg-white rounded-full p-0.5 shadow-sm" />
-            </>
-          ) : (
-            <>
-              <Camera size={22} className="text-std-gray-dm" />
-              <p className="text-[11px] text-std-gray-dm">Photo {i + 1}</p>
-            </>
-          )}
+    <div className="rounded-xl border border-nav-gray bg-white overflow-hidden">
+      <div className="px-4 py-2.5 bg-bg-gray-lm/60 border-b border-nav-gray/40 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-black">{group.label}</p>
+          <p className="text-[10px] text-std-gray-lm mt-0.5">
+            {filled} of {group.slots.length} photos
+            {group.required && <span className="ml-1.5 text-red-600 font-semibold">· Required</span>}
+            {flagged > 0 && <span className="ml-1.5 text-red-600 font-semibold">· {flagged} flagged</span>}
+          </p>
         </div>
-      ))}
+        {filled > 0 && filled === group.slots.length && (
+          <span className="w-5 h-5 rounded-full bg-green-600/15 flex items-center justify-center flex-shrink-0">
+            <Check size={10} className="text-green-600" />
+          </span>
+        )}
+      </div>
+      <div className="p-3">
+        <div className="grid grid-cols-3 gap-2.5">
+          {group.slots.map(slot => (
+            <div key={slot.id} className="relative group/slot">
+              <div
+                onClick={() => onToggleSlot(slot.id)}
+                className={clsx(
+                  'aspect-[4/3] rounded-lg border-2 cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 relative overflow-hidden',
+                  slot.flagged   ? 'border-red-600/40 bg-red-600/5' :
+                  slot.filename  ? 'border-green-600/30 bg-gradient-to-br from-slate-100 to-slate-200 hover:opacity-90' :
+                  'border-dashed border-nav-gray hover:border-teal-400/60 hover:bg-teal-400/5'
+                )}
+              >
+                {slot.filename ? (
+                  <>
+                    <FileImage size={22} className="text-teal-400/60" />
+                    <p className="text-[10px] text-std-gray-lm text-center leading-tight px-1 truncate w-full">{slot.filename}</p>
+                    {slot.marked && <Check size={13} className="absolute top-1.5 right-1.5 text-green-600 bg-white rounded-full p-0.5 shadow-sm" />}
+                  </>
+                ) : (
+                  <>
+                    <Camera size={18} className="text-std-gray-dm" />
+                    <p className="text-[10px] text-std-gray-dm">Add photo</p>
+                  </>
+                )}
+              </div>
+              {slot.filename && (
+                <button
+                  onClick={() => onToggleFlag(slot.id)}
+                  className={clsx(
+                    'absolute top-1.5 left-1.5 p-1 rounded-md opacity-0 group-hover/slot:opacity-100 transition-all border',
+                    slot.flagged ? 'bg-red-600/10 border-red-600/30 text-red-600 opacity-100' : 'bg-white/80 border-nav-gray text-std-gray-lm hover:text-red-600'
+                  )}
+                >
+                  <Flag size={10} />
+                </button>
+              )}
+            </div>
+          ))}
+          {/* Add slot */}
+          <button
+            onClick={onAddSlot}
+            className="aspect-[4/3] rounded-lg border-2 border-dashed border-nav-gray flex flex-col items-center justify-center gap-1.5 text-std-gray-dm hover:border-teal-400/60 hover:text-teal-500 hover:bg-teal-400/5 transition-all"
+          >
+            <Plus size={16} />
+            <p className="text-[10px]">Add</p>
+          </button>
+        </div>
+      </div>
     </div>
   )
+}
+
+function PhotoGroupCardDemo({ label, required, preloaded, count }: { label: string; required?: boolean; preloaded?: number; count?: number }) {
+  const [group, setGroup] = useState<DemoPhotoGroup>(() => makeDemoGroup('demo', label, count ?? 3, required ?? false, preloaded ?? 0))
+
+  function toggleSlot(slotId: string) {
+    setGroup(prev => ({
+      ...prev,
+      slots: prev.slots.map(s => s.id === slotId
+        ? s.filename ? { ...s, filename: null, marked: false } : { ...s, filename: `photo_${String(prev.slots.findIndex(x => x.id === slotId) + 1).padStart(2, '0')}.jpg`, marked: true }
+        : s
+      ),
+    }))
+  }
+  function addSlot() {
+    setGroup(prev => ({ ...prev, slots: [...prev.slots, makeDemoSlot(`demo_s${prev.slots.length}_${Date.now()}`)] }))
+  }
+  function toggleFlag(slotId: string) {
+    setGroup(prev => ({ ...prev, slots: prev.slots.map(s => s.id === slotId ? { ...s, flagged: !s.flagged } : s) }))
+  }
+
+  return <PhotoGroupCard group={group} onToggleSlot={toggleSlot} onAddSlot={addSlot} onToggleFlag={toggleFlag} />
 }
 
 // ─── Button demos ──────────────────────────────────────────────────────────────
@@ -664,32 +756,16 @@ export default function ComponentLibraryPage() {
               </div>
             </SubSection>
 
-            <SubSection title="COP — Photo Grid (2-up layout)">
-              <div className="bg-white rounded-xl border border-nav-gray p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h4 className="text-sm font-bold text-black">Compound Exterior Photos</h4>
-                    <p className="text-xs text-std-gray-lm mt-0.5">0 of 4 photos captured</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-std-gray-lm">
-                    <button className="p-1.5 rounded hover:bg-hover-gray-lm transition-colors"><Columns2 size={14} /></button>
-                    <button className="p-1.5 rounded bg-hover-gray-lm text-black transition-colors"><Grid3x3 size={14} /></button>
-                  </div>
-                </div>
-                <PhotoGrid count={4} cols={2} />
-              </div>
+            <SubSection title="COP — Photo Group Card (3-up, empty)">
+              <PhotoGroupCardDemo label="Compound Exterior Photos" count={3} />
             </SubSection>
 
-            <SubSection title="COP — Photo Grid (3-up layout)">
-              <div className="bg-white rounded-xl border border-nav-gray p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h4 className="text-sm font-bold text-black">Tower Face Photos</h4>
-                    <p className="text-xs text-std-gray-lm mt-0.5">0 of 6 photos captured · <span className="text-red-600 font-medium">Required</span></p>
-                  </div>
-                </div>
-                <PhotoGrid count={6} cols={3} />
-              </div>
+            <SubSection title="COP — Photo Group Card (3-up, partially filled)">
+              <PhotoGroupCardDemo label="Existing Overall View" count={4} preloaded={3} />
+            </SubSection>
+
+            <SubSection title="COP — Photo Group Card (required, empty)">
+              <PhotoGroupCardDemo label="Tower Face Photos" count={3} required />
             </SubSection>
 
             <SubSection title="COP — Mixed Section (Photos + Fields)">

@@ -41,6 +41,10 @@ export const mockSiteSummary = {
   structures: [{ id: 'str_001', name: 'Guyed', type: 'Guyed Tower', height: '300ft' }],
   compounds: [{ id: 'cmp_001', name: 'Compound', cuid: '13771fc7-5c54-4c11-b680-e004c2e77fee' }],
   siteVisits: [{ id: 'visit_001', name: 'Antelope Drive Deming', date: 'May 29, 2025 9:15 AM', type: 'Inspection', surveyCount: 4, status: 'QA Editor' }],
+  attachments: [
+    { id: 'att_001', name: 'Site Overview.jpg', size: '2.4 MB', date: 'May 29, 2025' },
+    { id: 'att_002', name: 'Access Road Documentation.pdf', size: '840 KB', date: 'May 29, 2025' },
+  ],
   reports: [
     { id: 'rpt_001', name: 'TEST_10656_Report_20260208', date: 'Feb 3, 2026 12:00 PM', version: 'AllTowers_TIA_Inspection_v4.34' },
     { id: 'rpt_002', name: 'TEST-10656_Report_20251107', date: 'Sep 15, 2025 12:00 PM', version: 'AllTowers_TIA_Inspection_v4.33' },
@@ -57,26 +61,31 @@ export const mockSiteVisit = {
   siteCoordinates: '30.23702697, -93.76688727',
   structureOwner: 'TowerCo',
   projectCode: 'TX-INSP-2025',
-  scopeOfWork: 'Close out Package',
+  scopeOfWork: 'Inspection',
   temperature: '72°F',
   windSpeed: '6 MPH',
   windDirection: 'SE',
   weather: 'Cloudy',
   contributors: [{ name: 'Lucy Kien', email: 'lkien@fieldsync.io' }],
-  closeOutPackage: {
-    workOrder: 'WO-10656-2025',
-    applicableSections: 'ecp-get-me-a-potato-hello-world-yo',
-    workCompleted: 'Yes',
-    returnVisitNeeded: 'No',
+  structure: {
+    structureType: 'Guyed',
+    legs: '3',
+    guyAttachments: '9',
+    elevations: '100 ft, 200 ft, 300 ft',
+    guyAnchorCompounds: '6',
+    lighting: 'Yes',
   },
   jsaReport: null,
-  attachments: [],
+  attachments: [
+    { id: 'att_001', name: 'Pre-climb JSA Form.pdf', size: '512 KB', date: 'Oct 8, 2025' },
+    { id: 'att_002', name: 'Glamour Shot.jpg', size: '3.1 MB', date: 'Oct 8, 2025' },
+  ],
   scans: [],
   surveys: [
     { id: 'survey_001', name: 'Compound Inspection', type: 'Compound Inspection', status: 'In Progress', completedFields: 8, totalFields: 20 },
-    { id: 'survey_002', name: 'TEST Structure Inspection', type: 'Structure Inspection', status: 'Completed', completedFields: 24, totalFields: 24 },
-    { id: 'survey_003', name: 'Antennae Survey', type: 'Antenna Survey', status: 'In Progress', completedFields: 12, totalFields: 30 },
-    { id: 'survey_004', name: 'Close-out Package', type: 'Close-out', status: 'Not Started', completedFields: 0, totalFields: 15 },
+    { id: 'survey_002', name: 'Structure Inspection', type: 'Structure Inspection', status: 'Completed', completedFields: 24, totalFields: 24 },
+    { id: 'survey_003', name: 'Guy Facilities', type: 'Guy Facilities', status: 'In Progress', completedFields: 12, totalFields: 30 },
+    { id: 'survey_004', name: 'Plumb & Twist', type: 'Plumb & Twist', status: 'Not Started', completedFields: 0, totalFields: 15 },
   ],
 }
 

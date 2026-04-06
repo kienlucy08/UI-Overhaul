@@ -338,3 +338,209 @@ ServiceCOPQCPage: New page built from scratch (~750 lines).
 - All standard features present: autosave, Flags slide-over, AI Analysis slide-over, Mark Complete modal. 
 - Route added to App.tsx, status set to In Progress.
 Still not built: Structure Climb QC editor, Structure Flight QC editor.
+
+---
+---
+
+
+# Session 3 Summary
+# Branch: main | Continued from Session 2
+
+---
+
+## Files Modified
+
+- src/pages/SiteSummaryPage.tsx       (shared component migration + Attachments section)
+- src/pages/SiteVisitPage.tsx         (shared component migration + Attachments + Structure card)
+- src/pages/SiteDetailPage.tsx        (Attachments stat card added)
+- src/pages/ComponentLibraryPage.tsx  (PhotoGrid replaced with real PhotoGroupCard pattern)
+- src/pages/PlumbTwistQCPage.tsx      (field state standardization — green reviewed highlight)
+- src/pages/GuyFacilitiesQCPage.tsx   (wire photo popover, indigo→green check buttons)
+- src/components/SectionCard.tsx      (new shared component)
+- src/components/Layout.tsx           (scroll fix)
+- src/data/mockData.ts                (attachments, structure data, inspection surveys)
+
+---
+
+## 1. Shared SectionCard Component (src/components/SectionCard.tsx)
+
+Extracted the duplicated SectionCard pattern from SiteSummaryPage and SiteVisitPage into
+a shared component file with two exports:
+
+  SectionCard — card with header (icon + title + count + optional action slot)
+  AttachmentRow — reusable attachment list item with file extension badge, name, size,
+                  date, and hover-reveal download button
+
+Both pages now import from this shared file instead of defining their own local versions.
+
+
+---
+
+## 2. SiteSummaryPage.tsx
+
+- Migrated to shared SectionCard / AttachmentRow.
+- Added Attachments section card (5th card in grid).
+- Stat bar updated to 6 columns: added Attachments between Scans and Reports.
+- onAdd buttons converted to action={<button>} prop pattern.
+
+
+---
+
+## 3. SiteVisitPage.tsx
+
+- Migrated to shared SectionCard / AttachmentRow.
+- Replaced Close-out Package field group card with Structure card (TowerControl icon).
+  Structure fields: Structure Type, Legs, Guy Attachments, Elevations,
+                    Guy Anchor Compounds, Lighting.
+- Attachments section now renders actual AttachmentRow items (was a dashed placeholder).
+- Scans section empty state uses same dashed-border + icon pattern as JSA Report.
+- All 5 field group cards (Site & Job, Location, Site Conditions, Contributors, Structure)
+  given bg-white to fix transparent appearance.
+- Scope of work changed from 'Close out Package' → 'Inspection'.
+- Surveys updated: Compound Inspection, Structure Inspection, Guy Facilities, Plumb & Twist.
+
+
+---
+
+## 4. SiteDetailPage.tsx
+
+- Added Paperclip import.
+- Added Attachments stat card (between Scans and Reports).
+- Grid updated from grid-cols-5 → grid-cols-6.
+
+
+---
+
+## 5. Layout.tsx — Scroll Fix
+
+  <main className="flex-1 overflow-hidden">  →  <main className="flex-1 overflow-y-auto">
+
+This was blocking all vertical scroll on every page.
+
+
+---
+
+## 6. mockData.ts Changes
+
+  mockSiteSummary.attachments — added 2 mock files:
+    { id: 'att_001', name: 'Site Overview.jpg', size: '2.4 MB', date: 'May 29, 2025' }
+    { id: 'att_002', name: 'Access Road Documentation.pdf', size: '840 KB', date: 'May 29, 2025' }
+
+  mockSiteVisit.attachments — added 2 mock files:
+    { id: 'att_001', name: 'Pre-climb JSA Form.pdf', size: '512 KB', date: 'Oct 8, 2025' }
+    { id: 'att_002', name: 'Glamour Shot.jpg', size: '3.1 MB', date: 'Oct 8, 2025' }
+
+  mockSiteVisit.structure — replaced closeOutPackage with:
+    { structureType: 'Guyed', legs: '3', guyAttachments: '9',
+      elevations: '100 ft, 200 ft, 300 ft', guyAnchorCompounds: '6', lighting: 'Yes' }
+
+  mockSiteVisit.scopeOfWork — 'Close out Package' → 'Inspection'
+
+  mockSiteVisit.surveys — replaced Close-out Package survey with:
+    Compound Inspection, Structure Inspection, Guy Facilities, Plumb & Twist
+
+
+---
+
+## 7. Reviewed (Green) State Standardization — All QC Pages
+
+Unified the "reviewed / marked" field highlight to match QCEditorPage (compound) across
+all pages. The standard is:
+
+  State     | Border              | Background          | Left bar   | Badge
+  --------- | ------------------- | ------------------- | ---------- | ------
+  Default   | border-nav-gray     | white               | bg-nav-gray | —
+  Flagged   | border-red-600/25   | bg-red-600/[0.04]   | bg-red-600 | Flagged (red)
+  Reviewed  | border-green-600/20 | bg-green-600/[0.04] | bg-green-600 | Reviewed (green)
+
+### ComponentLibraryPage.tsx
+  - FieldDemo marked state: 'bg-white opacity-75' → 'bg-green-600/[0.04] border-green-600/20'
+  - Added Reviewed green badge in label row (same as Flagged badge pattern)
+
+### PlumbTwistQCPage.tsx
+  - Summary section fields (Structure Type, Legs, Base Face Width):
+      Replaced flat div with bordered wrapper + flex-row pattern matching QCEditorPage.
+      Added green left bar (3px) that transitions from nav-gray → green-600 on mark.
+      Added Reviewed badge to label row.
+  - Leg settings fields (Observation Distance, Observation Type):
+      Added dynamic row background tint (red or green) based on flagged/marked state.
+      Replaced static bg-red-400 accent bar with dynamic 3px bar.
+      Added Reviewed / Flagged badges inline.
+  - checkBtn helper + obs check button: indigo → green
+
+### GuyFacilitiesQCPage.tsx
+  - Wire check button: indigo → green
+
+
+---
+
+## 8. ComponentLibraryPage.tsx — Photo Grid Replaced
+
+Replaced the placeholder PhotoGrid component with the real PhotoGroupCard pattern
+from ServiceCOPQCPage:
+
+  Added types: DemoPhotoSlot, DemoPhotoGroup
+  Added helpers: makeDemoSlot, makeDemoGroup
+  Added component: PhotoGroupCard (exact match to ServiceCOP implementation)
+  Added wrapper: PhotoGroupCardDemo (stateful demo wrapper)
+
+Three demos in Photo / COP section:
+  1. COP — Photo Group Card (3-up, empty)
+  2. COP — Photo Group Card (3-up, partially filled with 3 pre-loaded photos)
+  3. COP — Photo Group Card (required, empty)
+
+Cards are fully interactive: click slot to toggle filled/empty, hover to flag,
+click Add to append a slot.
+
+
+---
+
+## 9. GuyFacilitiesQCPage.tsx — Wire Photo Popovers
+
+Added photo attachment capability to three columns of the wire table.
+
+### New type
+  WirePhoto: { id: string; filename: string }
+
+### GuyWire type additions
+  gaugeMeasurementPhotos: WirePhoto[]   — attached to Size (# Strands) column
+  deadEndPhotos: WirePhoto[]            — attached to Preform Color column
+  tensionPhotos: WirePhoto[]            — attached to Tension (lbf) column
+
+### New components
+
+  WirePhotoPopover
+    - Renders via createPortal to body (never clipped by table overflow)
+    - Anchored below the trigger button (fixed positioning from DOMRect)
+    - Lists existing photos with hover-reveal Trash2 delete button
+    - "Add Photo" dashed button at bottom
+    - Closes on click outside
+
+  WireCameraCell
+    - Camera icon button inline in the table cell
+    - Disabled (grayed, not clickable) when the column has no value
+    - Teal when photos exist; gray when empty
+    - Count badge (e.g. "2") when photos are present
+    - Opens/closes WirePhotoPopover
+
+### Imports added
+  FileImage, Trash2 added to lucide-react imports
+
+
+---
+
+## TypeScript
+
+All changes pass `npx tsc --noEmit` with zero errors.
+
+---
+
+Session 3 — SiteSummaryPage / SiteVisitPage / SiteDetailPage / Layout / QC Field States / Wire Photos
+- Extracted SectionCard + AttachmentRow into a shared component; both site pages now use it.
+- Added Attachments section and stat card to SiteSummaryPage, SiteVisitPage, and SiteDetailPage.
+- SiteVisitPage: replaced Close-out Package with Structure info card; fixed transparent field group cards; scoped to Inspection surveys.
+- Fixed global scroll bug in Layout.tsx (overflow-hidden → overflow-y-auto on main).
+- Standardized the reviewed/marked green highlight (border + bg tint + left bar + Reviewed badge) across ComponentLibraryPage, PlumbTwistQCPage, and GuyFacilitiesQCPage to match QCEditorPage.
+- Replaced ComponentLibraryPage placeholder PhotoGrid with the real PhotoGroupCard component (3-col aspect-[4/3] grid, flag overlays, add slot, interactive demo wrapper).
+- Added per-wire photo popovers to GuyFacilitiesQCPage: Gauge Measurement Photos (Size column), Dead-end Photos (Preform Color column), Tension Photos (Tension column). Popovers render via portal, anchor to trigger DOMRect, and support add/delete.
+Still not built: Structure Climb QC editor, Structure Flight QC editor.

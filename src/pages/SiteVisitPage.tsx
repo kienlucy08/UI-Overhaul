@@ -3,9 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   ChevronRight, User, MapPin, Briefcase, Wind, Thermometer,
   Cloud, FileText, Paperclip, ScanLine, ClipboardList, Plus,
-  CheckCircle2, Clock, AlertCircle, ArrowRight, Edit2, Save, Share2, Copy, Check
+  CheckCircle2, Clock, AlertCircle, ArrowRight, Edit2, Save, Share2, Copy, Check, TowerControl
 } from 'lucide-react'
 import { mockSiteVisit } from '../data/mockData'
+import { SectionCard, AttachmentRow } from '../components/SectionCard'
 import clsx from 'clsx'
 
 const surveyStatusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
@@ -15,10 +16,10 @@ const surveyStatusConfig: Record<string, { color: string; icon: React.ReactNode 
 }
 
 const statCards = (visit: typeof mockSiteVisit) => [
-  { label: 'Surveys',      value: visit.surveys.length,      icon: ClipboardList, iconColor: 'text-teal-400',   bg: 'bg-teal-400/8',   valColor: 'text-teal-900' },
-  { label: 'Contributors', value: visit.contributors.length, icon: User,          iconColor: 'text-indigo-500', bg: 'bg-indigo-500/8', valColor: 'text-indigo-500' },
-  { label: 'Attachments',  value: visit.attachments.length,  icon: Paperclip,     iconColor: 'text-std-gray-lm',bg: 'bg-bg-gray-lm',   valColor: 'text-black' },
-  { label: 'Scans',        value: visit.scans.length,        icon: ScanLine,      iconColor: 'text-teal-300',   bg: 'bg-teal-300/8',   valColor: 'text-teal-300' },
+  { label: 'Surveys',      value: visit.surveys.length,      icon: ClipboardList, iconColor: 'text-teal-400',    bg: 'bg-teal-400/8',   valColor: 'text-teal-900' },
+  { label: 'Contributors', value: visit.contributors.length, icon: User,          iconColor: 'text-indigo-500',  bg: 'bg-indigo-500/8', valColor: 'text-indigo-500' },
+  { label: 'Attachments',  value: visit.attachments.length,  icon: Paperclip,     iconColor: 'text-std-gray-lm', bg: 'bg-bg-gray-lm',   valColor: 'text-black' },
+  { label: 'Scans',        value: visit.scans.length,        icon: ScanLine,      iconColor: 'text-teal-300',    bg: 'bg-teal-300/8',   valColor: 'text-teal-300' },
 ]
 
 export default function SiteVisitPage() {
@@ -93,7 +94,7 @@ export default function SiteVisitPage() {
       {/* Field group cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Site & Job */}
-        <div className="rounded-lg border border-nav-gray p-4">
+        <div className="rounded-lg border border-nav-gray p-4 bg-white">
           <h3 className="text-xs font-semibold text-teal-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <Briefcase size={13} /> Site & Job
           </h3>
@@ -108,7 +109,7 @@ export default function SiteVisitPage() {
         </div>
 
         {/* Location */}
-        <div className="rounded-lg border border-nav-gray p-4">
+        <div className="rounded-lg border border-nav-gray p-4 bg-white">
           <h3 className="text-xs font-semibold text-teal-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <MapPin size={13} /> Location
           </h3>
@@ -119,7 +120,7 @@ export default function SiteVisitPage() {
         </div>
 
         {/* Site Conditions */}
-        <div className="rounded-lg border border-nav-gray p-4">
+        <div className="rounded-lg border border-nav-gray p-4 bg-white">
           <h3 className="text-xs font-semibold text-teal-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <Cloud size={13} /> Site Conditions
           </h3>
@@ -132,7 +133,7 @@ export default function SiteVisitPage() {
         </div>
 
         {/* Contributors */}
-        <div className="rounded-lg border border-nav-gray p-4">
+        <div className="rounded-lg border border-nav-gray p-4 bg-white">
           <h3 className="text-xs font-semibold text-teal-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <User size={13} /> Contributors
           </h3>
@@ -151,21 +152,23 @@ export default function SiteVisitPage() {
           </div>
         </div>
 
-        {/* Close-out Package */}
-        <div className="rounded-lg border border-nav-gray p-4">
+        {/* Structure */}
+        <div className="rounded-lg border border-nav-gray p-4 bg-white">
           <h3 className="text-xs font-semibold text-teal-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-            <ClipboardList size={13} /> Close-out Package
+            <TowerControl size={13} /> Structure
           </h3>
           <div className="space-y-3">
-            <FieldRow label="Work Order"          value={visit.closeOutPackage.workOrder}          editing={editing} fieldKey="workOrder"          onCopy={copyToClipboard} copiedKey={copiedKey} />
-            <FieldRow label="Applicable Sections" value={visit.closeOutPackage.applicableSections} editing={editing} fieldKey="applicableSections" onCopy={copyToClipboard} copiedKey={copiedKey} mono />
-            <FieldRow label="Work Completed"      value={visit.closeOutPackage.workCompleted}      editing={editing} fieldKey="workCompleted"      onCopy={copyToClipboard} copiedKey={copiedKey} />
-            <FieldRow label="Return Visit Needed" value={visit.closeOutPackage.returnVisitNeeded}  editing={editing} fieldKey="returnVisitNeeded"  onCopy={copyToClipboard} copiedKey={copiedKey} />
+            <FieldRow label="Structure Type"      value={visit.structure.structureType}     editing={editing} fieldKey="structureType"     onCopy={copyToClipboard} copiedKey={copiedKey} />
+            <FieldRow label="Legs"                value={visit.structure.legs}              editing={editing} fieldKey="legs"              onCopy={copyToClipboard} copiedKey={copiedKey} />
+            <FieldRow label="Guy Attachments"     value={visit.structure.guyAttachments}   editing={editing} fieldKey="guyAttachments"   onCopy={copyToClipboard} copiedKey={copiedKey} />
+            <FieldRow label="Elevations"          value={visit.structure.elevations}        editing={editing} fieldKey="elevations"        onCopy={copyToClipboard} copiedKey={copiedKey} />
+            <FieldRow label="Guy Anchor Compounds" value={visit.structure.guyAnchorCompounds} editing={editing} fieldKey="guyAnchorCompounds" onCopy={copyToClipboard} copiedKey={copiedKey} />
+            <FieldRow label="Lighting"            value={visit.structure.lighting}          editing={editing} fieldKey="lighting"          onCopy={copyToClipboard} copiedKey={copiedKey} />
           </div>
         </div>
       </div>
 
-      {/* Section cards */}
+      {/* Section cards grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* JSA Report */}
         <SectionCard
@@ -186,10 +189,15 @@ export default function SiteVisitPage() {
           title="Attachments"
           count={visit.attachments.length}
           icon={<Paperclip size={16} className="text-std-gray-lm" />}
+          action={
+            <button className="btn-secondary text-xs px-2.5 py-1.5">
+              <Plus size={13} /> Add
+            </button>
+          }
         >
-          <button className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-nav-gray text-sm text-std-gray-lm hover:border-teal-400 hover:text-teal-400 hover:bg-teal-400/5 transition-colors">
-            <Plus size={16} /> Add Attachment
-          </button>
+          {visit.attachments.map((a) => (
+            <AttachmentRow key={a.id} {...a} />
+          ))}
         </SectionCard>
 
         {/* Scans */}
@@ -197,10 +205,16 @@ export default function SiteVisitPage() {
           title="Scans"
           count={visit.scans.length}
           icon={<ScanLine size={16} className="text-teal-400" />}
+          action={
+            <button className="btn-secondary text-xs px-2.5 py-1.5">
+              <Plus size={13} /> Add
+            </button>
+          }
         >
-          <button className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-nav-gray text-sm text-std-gray-lm hover:border-teal-300 hover:text-teal-400 hover:bg-teal-300/5 transition-colors">
-            <Plus size={16} /> Add Scan
-          </button>
+          <div className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-nav-gray rounded-xl text-std-gray-lm">
+            <ScanLine size={24} className="mb-2 text-nav-gray" />
+            <p className="text-sm font-medium">No scans added</p>
+          </div>
         </SectionCard>
 
         {/* Surveys */}
@@ -255,32 +269,6 @@ export default function SiteVisitPage() {
           })}
         </SectionCard>
       </div>
-    </div>
-  )
-}
-
-function SectionCard({
-  title, count, icon, children, action
-}: {
-  title: string
-  count: number
-  icon: React.ReactNode
-  children?: React.ReactNode
-  action?: React.ReactNode
-}) {
-  return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {icon}
-          <h2 className="text-base font-semibold text-black">
-            {title}
-            <span className="ml-2 text-sm font-normal text-std-gray-lm">({count})</span>
-          </h2>
-        </div>
-        {action}
-      </div>
-      <div className="space-y-2">{children}</div>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, CheckCircle2, Flag, X, Plus, Minus,
   ChevronDown, ChevronRight, ChevronLeft, Check, Image, Camera,
-  Search, CheckCheck, Loader2, AlertTriangle, Sparkles,
+  Search, CheckCheck, Loader2, AlertTriangle, Sparkles, FileImage, Trash2,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -16,6 +16,7 @@ const AIFlagsContext = createContext<Record<string, AIFlagEntry>>({})
 // ─── Types ─────────────────────────────────────────────────────────────────────
 type PhotoItem   = { id: string; filename: string | null; marked: boolean; flagged: boolean }
 type PhotoGroup  = { id: string; label: string; photos: PhotoItem[] }
+type WirePhoto   = { id: string; filename: string }
 type GuyWire     = {
   id: string
   guyLevel: string          // "1", "2", "3"
@@ -28,6 +29,9 @@ type GuyWire     = {
   notes: string
   flagged: boolean
   marked: boolean
+  gaugeMeasurementPhotos: WirePhoto[]
+  deadEndPhotos: WirePhoto[]
+  tensionPhotos: WirePhoto[]
 }
 type GuyCompound = {
   id: string; label: string
@@ -71,7 +75,7 @@ function makePG(id: string, label: string, photos: PhotoItem[] = []): PhotoGroup
   return { id, label, photos }
 }
 function makeWire(id: string, level: string, pos: 'L' | 'R', size: string, rating: string, color: string, tension: string, prop: GuyWire['tensionPropriety']): GuyWire {
-  return { id, guyLevel: level, position: pos, size, strengthRating: rating, preformColorCode: color, measuredTension: tension, tensionPropriety: prop, notes: '', flagged: false, marked: prop !== '' }
+  return { id, guyLevel: level, position: pos, size, strengthRating: rating, preformColorCode: color, measuredTension: tension, tensionPropriety: prop, notes: '', flagged: false, marked: prop !== '', gaugeMeasurementPhotos: [], deadEndPhotos: [], tensionPhotos: [] }
 }
 function makeCompound(label: string, partial: Partial<GuyCompound> = {}): GuyCompound {
   return {
@@ -189,6 +193,120 @@ function PhotoGroupRow({ group, onAddPhoto }: { group: PhotoGroup; onAddPhoto: (
   )
 }
 
+// ─── WirePhotoPopover ──────────────────────────────────────────────────────────
+function WirePhotoPopover({
+  label, photos, onAdd, onRemove, anchor,
+}: {
+  label: string
+  photos: WirePhoto[]
+  onAdd: () => void
+  onRemove: (id: string) => void
+  anchor: DOMRect | null
+}) {
+  if (!anchor) return null
+  const style: React.CSSProperties = {
+    position: 'fixed',
+    top: anchor.bottom + 6,
+    left: Math.max(8, anchor.left - 120),
+    zIndex: 9999,
+    width: 280,
+  }
+  return createPortal(
+    <div style={style} className="bg-white rounded-xl border border-nav-gray shadow-xl overflow-hidden">
+      <div className="px-4 py-2.5 bg-bg-gray-lm/60 border-b border-nav-gray/40 flex items-center justify-between">
+        <p className="text-xs font-bold text-black">{label}</p>
+        <span className="text-[10px] text-std-gray-lm">{photos.length} photo{photos.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div className="p-3 space-y-2">
+        {photos.map(p => (
+          <div key={p.id} className="flex items-center gap-2.5 group/ph">
+            <div className="w-10 h-8 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 border border-nav-gray flex items-center justify-center flex-shrink-0">
+              <FileImage size={14} className="text-teal-400/60" />
+            </div>
+            <p className="text-xs text-black truncate flex-1 min-w-0">{p.filename}</p>
+            <button
+              onClick={() => onRemove(p.id)}
+              className="p-1 rounded text-std-gray-lm hover:text-red-600 hover:bg-red-600/8 opacity-0 group-hover/ph:opacity-100 transition-all flex-shrink-0"
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={onAdd}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border-2 border-dashed border-nav-gray text-xs text-std-gray-lm hover:border-teal-400 hover:text-teal-500 hover:bg-teal-400/5 transition-colors"
+        >
+          <Camera size={12} /> Add Photo
+        </button>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+// ─── WireCameraCell ─────────────────────────────────────────────────────────────
+function WireCameraCell({ label, photos, onAdd, onRemove, disabled }: {
+  label: string
+  photos: WirePhoto[]
+  onAdd: () => void
+  onRemove: (id: string) => void
+  disabled?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (!btnRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  function toggle() {
+    if (disabled) return
+    const rect = btnRef.current?.getBoundingClientRect() ?? null
+    setAnchorRect(rect)
+    setOpen(v => !v)
+  }
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={toggle}
+        disabled={disabled}
+        className={clsx(
+          'relative p-1 rounded transition-colors flex-shrink-0',
+          disabled ? 'opacity-25 cursor-not-allowed text-std-gray-dm' :
+          photos.length > 0 ? 'text-teal-500 hover:bg-teal-400/8' : 'text-std-gray-dm hover:text-teal-500 hover:bg-teal-400/8'
+        )}
+        title={disabled ? 'Enter a value first' : `${label} (${photos.length})`}
+      >
+        <Image size={14} />
+        {photos.length > 0 && (
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-teal-400 text-white text-[8px] font-bold flex items-center justify-center leading-none">
+            {photos.length}
+          </span>
+        )}
+      </button>
+      {open && (
+        <WirePhotoPopover
+          label={label}
+          photos={photos}
+          onAdd={() => {
+            onAdd()
+          }}
+          onRemove={onRemove}
+          anchor={anchorRect}
+        />
+      )}
+    </>
+  )
+}
+
 // ─── WireTable ──────────────────────────────────────────────────────────────────
 // Pure wire data table — measurements live above in CompoundCard
 function WireTable({ wires, onUpdate, onAdd, onRemove }: {
@@ -211,7 +329,7 @@ function WireTable({ wires, onUpdate, onAdd, onRemove }: {
               <th className="text-left text-xs font-bold text-white px-4 py-2.5">Size (# Strands)</th>
               <th className="text-left text-xs font-bold text-white px-4 py-2.5">Strength Rating</th>
               <th className="text-left text-xs font-bold text-white px-4 py-2.5">Preform Color</th>
-              <th className="text-left text-xs font-bold text-white px-4 py-2.5">Measured Tension (lbf)</th>
+              <th className="text-left text-xs font-bold text-white px-4 py-2.5">Tension (lbf)</th>
               <th className="text-left text-xs font-bold text-white px-4 py-2.5">Notes</th>
               <th className="w-24" />
             </tr>
@@ -247,11 +365,20 @@ function WireTable({ wires, onUpdate, onAdd, onRemove }: {
                         </select>
                       </td>
                       <td className="px-4 py-2">
-                        <select value={wire.size} onChange={e => onUpdate(wire.id, { size: e.target.value })}
-                          className="px-2 py-1.5 text-sm bg-bg-gray-lm border border-nav-gray rounded text-black outline-none focus:border-teal-400 transition-colors">
-                          <option value="">— Select —</option>
-                          {WIRE_SIZES.map(s => <option key={s}>{s}</option>)}
-                        </select>
+                        <div className="flex items-center gap-1">
+                          <select value={wire.size} onChange={e => onUpdate(wire.id, { size: e.target.value })}
+                            className="px-2 py-1.5 text-sm bg-bg-gray-lm border border-nav-gray rounded text-black outline-none focus:border-teal-400 transition-colors">
+                            <option value="">— Select —</option>
+                            {WIRE_SIZES.map(s => <option key={s}>{s}</option>)}
+                          </select>
+                          <WireCameraCell
+                            label="Gauge Measurement Photos"
+                            photos={wire.gaugeMeasurementPhotos}
+                            disabled={!wire.size}
+                            onAdd={() => onUpdate(wire.id, { gaugeMeasurementPhotos: [...wire.gaugeMeasurementPhotos, { id: `gmp_${wire.id}_${Date.now()}`, filename: `gauge_${wire.id}_${wire.gaugeMeasurementPhotos.length + 1}.jpg` }] })}
+                            onRemove={pid => onUpdate(wire.id, { gaugeMeasurementPhotos: wire.gaugeMeasurementPhotos.filter(p => p.id !== pid) })}
+                          />
+                        </div>
                       </td>
                       <td className="px-4 py-2">
                         <select value={wire.strengthRating} onChange={e => onUpdate(wire.id, { strengthRating: e.target.value })}
@@ -261,15 +388,33 @@ function WireTable({ wires, onUpdate, onAdd, onRemove }: {
                         </select>
                       </td>
                       <td className="px-4 py-2">
-                        <select value={wire.preformColorCode} onChange={e => onUpdate(wire.id, { preformColorCode: e.target.value })}
-                          className="px-2 py-1.5 text-sm bg-bg-gray-lm border border-nav-gray rounded text-black outline-none focus:border-teal-400 transition-colors">
-                          <option value="">— Select —</option>
-                          {PREFORM_COLORS.map(c => <option key={c}>{c}</option>)}
-                        </select>
+                        <div className="flex items-center gap-1">
+                          <select value={wire.preformColorCode} onChange={e => onUpdate(wire.id, { preformColorCode: e.target.value })}
+                            className="px-2 py-1.5 text-sm bg-bg-gray-lm border border-nav-gray rounded text-black outline-none focus:border-teal-400 transition-colors">
+                            <option value="">— Select —</option>
+                            {PREFORM_COLORS.map(c => <option key={c}>{c}</option>)}
+                          </select>
+                          <WireCameraCell
+                            label="Dead-end Photos"
+                            photos={wire.deadEndPhotos}
+                            disabled={!wire.preformColorCode}
+                            onAdd={() => onUpdate(wire.id, { deadEndPhotos: [...wire.deadEndPhotos, { id: `dep_${wire.id}_${Date.now()}`, filename: `deadend_${wire.id}_${wire.deadEndPhotos.length + 1}.jpg` }] })}
+                            onRemove={pid => onUpdate(wire.id, { deadEndPhotos: wire.deadEndPhotos.filter(p => p.id !== pid) })}
+                          />
+                        </div>
                       </td>
                       <td className="px-4 py-2">
-                        <input type="number" value={wire.measuredTension} onChange={e => onUpdate(wire.id, { measuredTension: e.target.value })} placeholder="—"
-                          className="w-24 px-2 py-1.5 text-sm bg-bg-gray-lm border border-nav-gray rounded text-black placeholder-std-gray-dm outline-none focus:border-teal-400 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                        <div className="flex items-center gap-1">
+                          <input type="number" value={wire.measuredTension} onChange={e => onUpdate(wire.id, { measuredTension: e.target.value })} placeholder="—"
+                            className="w-20 px-2 py-1.5 text-sm bg-bg-gray-lm border border-nav-gray rounded text-black placeholder-std-gray-dm outline-none focus:border-teal-400 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                          <WireCameraCell
+                            label="Tension Photos"
+                            photos={wire.tensionPhotos}
+                            disabled={!wire.measuredTension}
+                            onAdd={() => onUpdate(wire.id, { tensionPhotos: [...wire.tensionPhotos, { id: `tp_${wire.id}_${Date.now()}`, filename: `tension_${wire.id}_${wire.tensionPhotos.length + 1}.jpg` }] })}
+                            onRemove={pid => onUpdate(wire.id, { tensionPhotos: wire.tensionPhotos.filter(p => p.id !== pid) })}
+                          />
+                        </div>
                       </td>
                       <td className="px-4 py-2">
                         <input value={wire.notes} onChange={e => onUpdate(wire.id, { notes: e.target.value })} placeholder="Optional…"
@@ -281,7 +426,7 @@ function WireTable({ wires, onUpdate, onAdd, onRemove }: {
                     {!isPending && (
                       <div className="flex items-center gap-1 justify-end">
                         <button onClick={() => onUpdate(wire.id, { flagged: !wire.flagged })} className={clsx('p-1.5 rounded border transition-colors', wire.flagged ? 'text-red-600 bg-red-600/10 border-red-600/30' : 'text-std-gray-lm border-nav-gray hover:text-red-600 hover:bg-red-600/8')}><Flag size={11} /></button>
-                        <button onClick={() => onUpdate(wire.id, { marked: !wire.marked })} className={clsx('p-1.5 rounded border transition-colors', wire.marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8 hover:border-indigo-300/60')}><Check size={11} /></button>
+                        <button onClick={() => onUpdate(wire.id, { marked: !wire.marked })} className={clsx('p-1.5 rounded border transition-colors', wire.marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8 hover:border-green-600/30')}><Check size={11} /></button>
                         <button onClick={() => setPendingDeleteId(wire.id)} className="p-1.5 rounded border border-nav-gray text-std-gray-lm hover:text-red-600 hover:bg-red-600/8 hover:border-red-600/30 transition-colors"><Minus size={11} /></button>
                       </div>
                     )}
@@ -310,7 +455,7 @@ function CompoundDetailView({ compound, onUpdate }: {
   const [photosOpen, setPhotosOpen] = useState(false)
 
   const addWire = () => onUpdate({
-    wires: [...compound.wires, { id: `w_${compound.label}_${Date.now()}`, guyLevel: '', position: '', size: '', strengthRating: '', preformColorCode: '', measuredTension: '', tensionPropriety: '', notes: '', flagged: false, marked: false }]
+    wires: [...compound.wires, { id: `w_${compound.label}_${Date.now()}`, guyLevel: '', position: '' as GuyWire['position'], size: '', strengthRating: '', preformColorCode: '', measuredTension: '', tensionPropriety: '' as GuyWire['tensionPropriety'], notes: '', flagged: false, marked: false, gaugeMeasurementPhotos: [], deadEndPhotos: [], tensionPhotos: [] }]
   })
   const updateWire = (wireId: string, patch: Partial<GuyWire>) =>
     onUpdate({ wires: compound.wires.map(w => w.id === wireId ? { ...w, ...patch } : w) })

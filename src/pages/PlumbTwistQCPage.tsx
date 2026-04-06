@@ -211,7 +211,7 @@ function ObservationsTable({ leg, onUpdateObs }: {
                       <Flag size={11} />
                     </button>
                     <button onClick={() => onUpdateObs(obs.id, { marked: !obs.marked })}
-                      className={clsx('p-1.5 rounded border transition-colors', obs.marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8 hover:border-indigo-300/60')}>
+                      className={clsx('p-1.5 rounded border transition-colors', obs.marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8 hover:border-green-600/30')}>
                       <Check size={11} />
                     </button>
                   </div>
@@ -241,7 +241,7 @@ function LegDetailView({ leg, onUpdate }: {
   )
   const checkBtn = (marked: boolean, onToggle: () => void) => (
     <button onClick={onToggle}
-      className={clsx('p-1.5 rounded-lg border transition-colors', marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8')}>
+      className={clsx('p-1.5 rounded-lg border transition-colors', marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8')}>
       <Check size={12} />
     </button>
   )
@@ -255,10 +255,16 @@ function LegDetailView({ leg, onUpdate }: {
         </div>
         <div className="divide-y divide-nav-gray/30">
           {/* Observation Distance */}
-          <div className="flex items-center justify-between px-5 py-3.5 gap-4">
+          <div className={clsx('flex items-center justify-between px-5 py-3.5 gap-4 transition-colors duration-200',
+            leg.observationDistanceFlagged ? 'bg-red-600/[0.04]' : leg.observationDistanceMarked ? 'bg-green-600/[0.04]' : ''
+          )}>
             <div className="flex items-center gap-2.5">
-              <div className="w-1 h-5 rounded-full flex-shrink-0 bg-red-400" />
+              <div className={clsx('w-[3px] h-5 rounded-full flex-shrink-0 transition-colors duration-300',
+                leg.observationDistanceMarked ? 'bg-green-600' : leg.observationDistanceFlagged ? 'bg-red-600' : 'bg-nav-gray'
+              )} />
               <span className="text-sm font-medium text-black">Observation Distance (feet)</span>
+              {leg.observationDistanceFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
+              {leg.observationDistanceMarked && <span className="text-[10px] font-semibold text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Check size={9} /> Reviewed</span>}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <input type="number" value={leg.observationDistance}
@@ -272,10 +278,16 @@ function LegDetailView({ leg, onUpdate }: {
           </div>
 
           {/* Observation Type */}
-          <div className="flex items-center justify-between px-5 py-3.5 gap-4">
+          <div className={clsx('flex items-center justify-between px-5 py-3.5 gap-4 transition-colors duration-200',
+            leg.observationTypeFlagged ? 'bg-red-600/[0.04]' : leg.observationTypeMarked ? 'bg-green-600/[0.04]' : ''
+          )}>
             <div className="flex items-center gap-2.5">
-              <div className="w-1 h-5 rounded-full flex-shrink-0 bg-red-400" />
+              <div className={clsx('w-[3px] h-5 rounded-full flex-shrink-0 transition-colors duration-300',
+                leg.observationTypeMarked ? 'bg-green-600' : leg.observationTypeFlagged ? 'bg-red-600' : 'bg-nav-gray'
+              )} />
               <span className="text-sm font-medium text-black">Observation Type</span>
+              {leg.observationTypeFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
+              {leg.observationTypeMarked && <span className="text-[10px] font-semibold text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Check size={9} /> Reviewed</span>}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="flex rounded-lg border border-nav-gray overflow-hidden bg-bg-gray-lm">
@@ -566,7 +578,7 @@ export default function PlumbTwistQCPage() {
   )
   const checkBtn = (marked: boolean, onToggle: () => void) => (
     <button onClick={onToggle}
-      className={clsx('p-1.5 rounded-lg border transition-colors', marked ? 'text-indigo-500 bg-indigo-500/10 border-indigo-500/30' : 'text-std-gray-lm border-nav-gray hover:text-indigo-500 hover:bg-indigo-500/8')}>
+      className={clsx('p-1.5 rounded-lg border transition-colors', marked ? 'text-green-600 bg-green-600/10 border-green-600/30' : 'text-std-gray-lm border-nav-gray hover:text-green-600 hover:bg-green-600/8')}>
       <Check size={12} />
     </button>
   )
@@ -811,41 +823,61 @@ export default function PlumbTwistQCPage() {
                 {/* Survey fields */}
                 <div className="space-y-3">
                   {/* Structure Type */}
-                  <div className={clsx('px-5 py-3.5 rounded-xl border transition-colors',
-                    survey.structureTypeFlagged ? 'bg-red-600/[0.04] border-red-600/25' : survey.structureTypeMarked ? 'bg-white border-nav-gray/60 opacity-75' : 'bg-white border-nav-gray'
+                  <div className={clsx('rounded-xl border overflow-hidden transition-colors duration-200',
+                    survey.structureTypeFlagged ? 'border-red-600/25' : survey.structureTypeMarked ? 'border-green-600/20' : 'border-nav-gray'
                   )}>
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-sm font-semibold text-black">Structure Type</span>
-                      <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>
-                      {survey.structureTypeFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <select value={survey.structureType}
-                        onChange={e => setSurvey(prev => ({ ...prev, structureType: e.target.value, structureTypeMarked: true }))}
-                        className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black outline-none focus:border-teal-400 transition-colors">
-                        {STRUCTURE_TYPES.map(t => <option key={t}>{t}</option>)}
-                      </select>
-                      {flagBtn(survey.structureTypeFlagged, () => setSurvey(p => ({ ...p, structureTypeFlagged: !p.structureTypeFlagged })))}
-                      {checkBtn(survey.structureTypeMarked, () => setSurvey(p => ({ ...p, structureTypeMarked: !p.structureTypeMarked })))}
+                    <div className={clsx('flex items-stretch gap-0 transition-colors duration-200',
+                      survey.structureTypeFlagged ? 'bg-red-600/[0.04]' : survey.structureTypeMarked ? 'bg-green-600/[0.04]' : 'bg-white'
+                    )}>
+                      <div className={clsx('w-[3px] flex-shrink-0 rounded-full my-3 ml-3 transition-colors duration-300',
+                        survey.structureTypeMarked ? 'bg-green-600' : survey.structureTypeFlagged ? 'bg-red-600' : 'bg-nav-gray'
+                      )} />
+                      <div className="flex-1 min-w-0 px-4 py-3.5">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <span className="text-sm font-semibold text-black">Structure Type</span>
+                          <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>
+                          {survey.structureTypeFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
+                          {survey.structureTypeMarked && <span className="text-[10px] font-semibold text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Check size={9} /> Reviewed</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <select value={survey.structureType}
+                            onChange={e => setSurvey(prev => ({ ...prev, structureType: e.target.value, structureTypeMarked: true }))}
+                            className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black outline-none focus:border-teal-400 transition-colors">
+                            {STRUCTURE_TYPES.map(t => <option key={t}>{t}</option>)}
+                          </select>
+                          {flagBtn(survey.structureTypeFlagged, () => setSurvey(p => ({ ...p, structureTypeFlagged: !p.structureTypeFlagged })))}
+                          {checkBtn(survey.structureTypeMarked, () => setSurvey(p => ({ ...p, structureTypeMarked: !p.structureTypeMarked })))}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* Legs */}
-                  <div className={clsx('px-5 py-3.5 rounded-xl border transition-colors',
-                    survey.legCountFlagged ? 'bg-red-600/[0.04] border-red-600/25' : survey.legCountMarked ? 'bg-white border-nav-gray/60 opacity-75' : 'bg-white border-nav-gray'
+                  <div className={clsx('rounded-xl border overflow-hidden transition-colors duration-200',
+                    survey.legCountFlagged ? 'border-red-600/25' : survey.legCountMarked ? 'border-green-600/20' : 'border-nav-gray'
                   )}>
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-sm font-semibold text-black">Legs</span>
-                      <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>
-                      {survey.legCountFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="number" value={survey.legCount}
-                        onChange={e => setSurvey(prev => ({ ...prev, legCount: e.target.value, legCountMarked: true }))}
-                        className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black outline-none focus:border-teal-400 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      />
-                      {flagBtn(survey.legCountFlagged, () => setSurvey(p => ({ ...p, legCountFlagged: !p.legCountFlagged })))}
-                      {checkBtn(survey.legCountMarked, () => setSurvey(p => ({ ...p, legCountMarked: !p.legCountMarked })))}
+                    <div className={clsx('flex items-stretch gap-0 transition-colors duration-200',
+                      survey.legCountFlagged ? 'bg-red-600/[0.04]' : survey.legCountMarked ? 'bg-green-600/[0.04]' : 'bg-white'
+                    )}>
+                      <div className={clsx('w-[3px] flex-shrink-0 rounded-full my-3 ml-3 transition-colors duration-300',
+                        survey.legCountMarked ? 'bg-green-600' : survey.legCountFlagged ? 'bg-red-600' : 'bg-nav-gray'
+                      )} />
+                      <div className="flex-1 min-w-0 px-4 py-3.5">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <span className="text-sm font-semibold text-black">Legs</span>
+                          <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>
+                          {survey.legCountFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
+                          {survey.legCountMarked && <span className="text-[10px] font-semibold text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Check size={9} /> Reviewed</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input type="number" value={survey.legCount}
+                            onChange={e => setSurvey(prev => ({ ...prev, legCount: e.target.value, legCountMarked: true }))}
+                            className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black outline-none focus:border-teal-400 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
+                          {flagBtn(survey.legCountFlagged, () => setSurvey(p => ({ ...p, legCountFlagged: !p.legCountFlagged })))}
+                          {checkBtn(survey.legCountMarked, () => setSurvey(p => ({ ...p, legCountMarked: !p.legCountMarked })))}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -863,21 +895,31 @@ export default function PlumbTwistQCPage() {
                   </div>
 
                   {/* Base Face Width */}
-                  <div className={clsx('px-5 py-3.5 rounded-xl border transition-colors',
-                    survey.baseFaceWidthFlagged ? 'bg-red-600/[0.04] border-red-600/25' : survey.baseFaceWidthMarked ? 'bg-white border-nav-gray/60 opacity-75' : 'bg-white border-nav-gray'
+                  <div className={clsx('rounded-xl border overflow-hidden transition-colors duration-200',
+                    survey.baseFaceWidthFlagged ? 'border-red-600/25' : survey.baseFaceWidthMarked ? 'border-green-600/20' : 'border-nav-gray'
                   )}>
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-sm font-semibold text-black">Base Face Width</span>
-                      <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>
-                      {survey.baseFaceWidthFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="number" value={survey.baseFaceWidth}
-                        onChange={e => setSurvey(prev => ({ ...prev, baseFaceWidth: e.target.value, baseFaceWidthMarked: true }))}
-                        className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black outline-none focus:border-teal-400 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      />
-                      {flagBtn(survey.baseFaceWidthFlagged, () => setSurvey(p => ({ ...p, baseFaceWidthFlagged: !p.baseFaceWidthFlagged })))}
-                      {checkBtn(survey.baseFaceWidthMarked, () => setSurvey(p => ({ ...p, baseFaceWidthMarked: !p.baseFaceWidthMarked })))}
+                    <div className={clsx('flex items-stretch gap-0 transition-colors duration-200',
+                      survey.baseFaceWidthFlagged ? 'bg-red-600/[0.04]' : survey.baseFaceWidthMarked ? 'bg-green-600/[0.04]' : 'bg-white'
+                    )}>
+                      <div className={clsx('w-[3px] flex-shrink-0 rounded-full my-3 ml-3 transition-colors duration-300',
+                        survey.baseFaceWidthMarked ? 'bg-green-600' : survey.baseFaceWidthFlagged ? 'bg-red-600' : 'bg-nav-gray'
+                      )} />
+                      <div className="flex-1 min-w-0 px-4 py-3.5">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <span className="text-sm font-semibold text-black">Base Face Width</span>
+                          <span className="text-[10px] font-semibold text-red-600 bg-red-600/8 border border-red-600/15 rounded-full px-2 py-0.5">Required</span>
+                          {survey.baseFaceWidthFlagged && <span className="text-[10px] font-semibold text-red-600 bg-red-600/10 border border-red-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Flag size={9} /> Flagged</span>}
+                          {survey.baseFaceWidthMarked && <span className="text-[10px] font-semibold text-green-600 bg-green-600/10 border border-green-600/20 rounded-full px-2 py-0.5 flex items-center gap-1"><Check size={9} /> Reviewed</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input type="number" value={survey.baseFaceWidth}
+                            onChange={e => setSurvey(prev => ({ ...prev, baseFaceWidth: e.target.value, baseFaceWidthMarked: true }))}
+                            className="flex-1 px-3 py-2 text-sm bg-bg-gray-lm border border-nav-gray rounded-lg text-black outline-none focus:border-teal-400 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
+                          {flagBtn(survey.baseFaceWidthFlagged, () => setSurvey(p => ({ ...p, baseFaceWidthFlagged: !p.baseFaceWidthFlagged })))}
+                          {checkBtn(survey.baseFaceWidthMarked, () => setSurvey(p => ({ ...p, baseFaceWidthMarked: !p.baseFaceWidthMarked })))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

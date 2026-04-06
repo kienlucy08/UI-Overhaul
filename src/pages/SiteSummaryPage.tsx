@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   MapPin, Building2, CalendarDays, ScanLine, FileText,
-  ArrowRight, ChevronRight, ExternalLink, Download, Share2, TowerControl
+  ArrowRight, ChevronRight, ExternalLink, Download, Share2, TowerControl, Paperclip, Plus
 } from 'lucide-react'
 import { mockSiteSummary } from '../data/mockData'
+import { SectionCard, AttachmentRow } from '../components/SectionCard'
 import clsx from 'clsx'
 
 const statCards = [
@@ -11,10 +12,10 @@ const statCards = [
   { label: 'Compounds',   value: mockSiteSummary.compoundCount,   icon: Building2,     iconColor: 'text-indigo-500', bg: 'bg-indigo-500/8', valColor: 'text-indigo-500' },
   { label: 'Site Visits', value: mockSiteSummary.siteVisitCount,  icon: CalendarDays,  iconColor: 'text-amber-600',  bg: 'bg-amber-500/8',  valColor: 'text-amber-600' },
   { label: 'Scans',       value: mockSiteSummary.scanCount,       icon: ScanLine,      iconColor: 'text-teal-300',   bg: 'bg-teal-300/8',   valColor: 'text-teal-300' },
+  { label: 'Attachments', value: mockSiteSummary.attachments.length, icon: Paperclip,  iconColor: 'text-std-gray-lm',bg: 'bg-bg-gray-lm',   valColor: 'text-black' },
   { label: 'Reports',     value: mockSiteSummary.reportCount,     icon: FileText,      iconColor: 'text-red-600',    bg: 'bg-red-600/8',    valColor: 'text-red-600' },
 ]
 
-// FieldSync visit status
 const statusColors: Record<string, string> = {
   'QA Editor':   'bg-teal-300/10 text-teal-600 border-teal-300/30',
   'Completed':   'bg-green-600/10 text-green-600 border-green-600/25',
@@ -45,7 +46,6 @@ export default function SiteSummaryPage() {
           <div className="flex-1 p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                {/* Dark Teal main heading */}
                 <h1 className="text-2xl font-bold text-teal-900">{mockSiteSummary.name}</h1>
                 <div className="flex items-center gap-1.5 mt-1.5 text-std-gray-lm">
                   <MapPin size={14} className="text-teal-400" />
@@ -68,7 +68,7 @@ export default function SiteSummaryPage() {
             </div>
 
             {/* Stat cards */}
-            <div className="grid grid-cols-5 gap-3 mt-6">
+            <div className="grid grid-cols-6 gap-3 mt-6">
               {statCards.map(({ label, value, icon: Icon, iconColor, bg, valColor }) => (
                 <div key={label} className={clsx('rounded-xl p-3 flex flex-col items-center gap-2', bg)}>
                   <Icon size={22} className={iconColor} />
@@ -94,14 +94,14 @@ export default function SiteSummaryPage() {
         </div>
       </div>
 
-      {/* Content grid */}
+      {/* Section cards grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Structures */}
         <SectionCard
           title="Structures"
           count={mockSiteSummary.structures.length}
           icon={<TowerControl size={16} className="text-teal-400" />}
-          onAdd={() => {}}
+          action={<button className="btn-secondary text-xs px-2.5 py-1.5">+ Add</button>}
         >
           {mockSiteSummary.structures.map((s) => (
             <div key={s.id} className="flex items-center justify-between p-3 rounded-lg border border-nav-gray hover:border-teal-400/40 hover:bg-teal-400/5 transition-colors cursor-pointer group">
@@ -125,7 +125,7 @@ export default function SiteSummaryPage() {
           title="Compounds"
           count={mockSiteSummary.compounds.length}
           icon={<Building2 size={16} className="text-indigo-500" />}
-          onAdd={() => {}}
+          action={<button className="btn-secondary text-xs px-2.5 py-1.5">+ Add</button>}
         >
           {mockSiteSummary.compounds.map((c) => (
             <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-nav-gray hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-colors cursor-pointer group">
@@ -148,7 +148,7 @@ export default function SiteSummaryPage() {
           title="Site Visits"
           count={mockSiteSummary.siteVisits.length}
           icon={<CalendarDays size={16} className="text-amber-600" />}
-          onAdd={() => {}}
+          action={<button className="btn-secondary text-xs px-2.5 py-1.5">+ Add</button>}
         >
           {mockSiteSummary.siteVisits.map((v) => (
             <div
@@ -208,38 +208,18 @@ export default function SiteSummaryPage() {
             </div>
           ))}
         </SectionCard>
-      </div>
-    </div>
-  )
-}
 
-function SectionCard({
-  title, count, icon, children, onAdd
-}: {
-  title: string
-  count: number
-  icon: React.ReactNode
-  children: React.ReactNode
-  onAdd?: () => void
-}) {
-  return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {icon}
-          <h2 className="text-base font-semibold text-black">
-            {title}
-            <span className="ml-2 text-sm font-normal text-std-gray-lm">({count})</span>
-          </h2>
-        </div>
-        {onAdd && (
-          <button onClick={onAdd} className="btn-secondary text-xs px-2.5 py-1.5">+ Add</button>
-        )}
-      </div>
-      <div className="space-y-2">
-        {count === 0
-          ? <p className="text-sm text-std-gray-lm text-center py-4">No {title.toLowerCase()} yet</p>
-          : children}
+        {/* Attachments */}
+        <SectionCard
+          title="Attachments"
+          count={mockSiteSummary.attachments.length}
+          icon={<Paperclip size={16} className="text-std-gray-lm" />}
+          action={<button className="btn-secondary text-xs px-2.5 py-1.5"><Plus size={13} /> Add</button>}
+        >
+          {mockSiteSummary.attachments.map((a) => (
+            <AttachmentRow key={a.id} {...a} />
+          ))}
+        </SectionCard>
       </div>
     </div>
   )
