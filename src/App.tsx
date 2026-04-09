@@ -7,6 +7,7 @@ import QCEditorPage from './pages/QCEditorPage'
 import GuyFacilitiesQCPage from './pages/GuyFacilitiesQCPage'
 import PlumbTwistQCPage from './pages/PlumbTwistQCPage'
 import ServiceCOPQCPage from './pages/ServiceCOPQCPage'
+import StructureClimbQCPage from './pages/StructureClimbQCPage'
 import SitesListPage from './pages/SitesListPage'
 import ComponentLibraryPage from './pages/ComponentLibraryPage'
 
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="surveys/survey_guy/qc" element={<GuyFacilitiesQCPage />} />
           <Route path="surveys/survey_pt/qc" element={<PlumbTwistQCPage />} />
           <Route path="surveys/survey_cop/qc" element={<ServiceCOPQCPage />} />
+          <Route path="surveys/survey_climb/qc" element={<StructureClimbQCPage />} />
           <Route path="surveys/:surveyId/qc" element={<QCEditorPage />} />
           <Route path="components" element={<ComponentLibraryPage />} />
         </Route>

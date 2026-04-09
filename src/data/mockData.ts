@@ -437,7 +437,7 @@ export type SurveyType = 'Compound' | 'Structure Climb' | 'Structure Flight' | '
 
 export const mockDashboardSurveys = [
   { id: 'survey_001',    name: 'Compound Survey',     siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:17 PM',  status: 'In Progress', type: 'Compound'        as SurveyType },
-  { id: 'survey_climb',  name: 'Structure Climb',     siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:18 PM',  status: 'Not Started', type: 'Structure Climb' as SurveyType },
+  { id: 'survey_climb',  name: 'Structure Climb',     siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:18 PM',  status: 'In Progress', type: 'Structure Climb' as SurveyType },
   { id: 'survey_flight', name: 'Structure Flight',    siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:19 PM',  status: 'Not Started', type: 'Structure Flight' as SurveyType },
   { id: 'survey_cop',    name: 'Service COP',         siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:20 PM',  status: 'In Progress', type: 'Service COP'     as SurveyType },
   { id: 'survey_pt',     name: 'Plumb & Twist',       siteId: 'TX6100',  siteName: 'Orange - Claybar',    created: 'Mar 5, 2025 12:21 PM',  status: 'In Progress', type: 'Plumb & Twist'   as SurveyType },
