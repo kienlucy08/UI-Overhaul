@@ -4298,3 +4298,37 @@ OUT
 (Bash completed with no output)
 Done. Added Attachments as the 5th stat card (between Scans and Reports) in SiteDetailPage.tsx, pulling the count from mockSiteSummary.attachments.length, and expanded the grid from 5 to 6 columns.
 
+Session 4
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 2-101)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 101-200)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 201-350)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 351-500)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 501-700)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 701-900)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 901-1100)
+Read c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx (lines 1101-1300)
+Now I have a clear picture. Let me implement the 4 overview sub-sections. I'll make three targeted edits:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx
+Removed 1 line
+Now add overview sub-items to the sidebar, right after the </button> closing of the nav item and before the deficiencies block:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx
+Added 26 lines
+Now replace the entire overview rendering block with sub-section conditional rendering:
+
+Now replace the entire overview content block with sub-section rendering:
+
+Edit c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx
+Added 5 lines
+Now verify there are no remaining references to the removed state variables:
+
+Grep "topBeaconOpen|lightningOpen" (in c:\Users\LucyKien\Desktop\GitHub_Prototypes\UI-Overhaul\src\pages\StructureClimbQCPage.tsx)
+1 line of output
+Clean. The Structure Overview section now has 4 sub-sections:
+
+Details — site info card + all field rows (Structure Type through Notes)
+Photos — Site Layout Photos and Laser Distance Photos
+Top Beacon — Yes/No toggle, Notes input, Photos strip (flat, no accordion)
+Lightning Protection — Protection Type select, Photos strip (flat, no accordion)
+The sidebar shows all 4 sub-items under "Structure Overview" at all times, with the active one highlighted. Clicking a sub-item navigates directly to that sub-section even if you're currently on a different main section.

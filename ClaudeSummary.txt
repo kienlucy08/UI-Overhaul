@@ -544,3 +544,171 @@ Session 3 — SiteSummaryPage / SiteVisitPage / SiteDetailPage / Layout / QC Fie
 - Replaced ComponentLibraryPage placeholder PhotoGrid with the real PhotoGroupCard component (3-col aspect-[4/3] grid, flag overlays, add slot, interactive demo wrapper).
 - Added per-wire photo popovers to GuyFacilitiesQCPage: Gauge Measurement Photos (Size column), Dead-end Photos (Preform Color column), Tension Photos (Tension column). Popovers render via portal, anchor to trigger DOMRect, and support add/delete.
 Still not built: Structure Climb QC editor, Structure Flight QC editor.
+
+---
+---
+
+
+# Session 4 Summary
+# Branch: main | Continued from Session 3
+
+---
+
+## Files Modified
+
+- src/App.tsx                             (route added for StructureClimbQCPage)
+- src/data/mockData.ts                    (survey_climb status set to In Progress)
+- src/pages/StructureClimbQCPage.tsx      (new page, ~2100 lines)
+
+---
+
+## 1. App.tsx — Route Added
+
+  import StructureClimbQCPage from './pages/StructureClimbQCPage'
+  <Route path="surveys/survey_climb/qc" element={<StructureClimbQCPage />} />
+  // inserted before the generic surveys/:surveyId/qc catch-all route
+
+---
+
+## 2. mockData.ts
+
+  survey_climb status: 'Not Started' → 'In Progress'
+
+---
+
+## 3. StructureClimbQCPage.tsx — New Page
+
+### Architecture
+Standard QC Editor shell: toolbar → sidebar → sticky section header → scrollable content → footer nav.
+All standard features: autosave (1500ms debounce), Flags slide-over, AI Analysis slide-over (mock),
+Mark Complete modal, overall progress bar in toolbar, nav search/filter.
+
+### Types
+
+  ClimbPhoto: { id, filename }
+  TaperChange: id, baseWidth+Flagged, topWidth+Flagged, topElevation+Flagged+Marked, marked
+  ClimbDeficiency: id, issue, severity, notes, photos, flagged, marked, collapsed
+  GroundLead: id, notes, photos, marked, flagged, collapsed
+  GuyAttachment: id, guyLevel+Flagged+Marked, elevation (locked), notes+Flagged, photos, marked, flagged, collapsed
+  MountCenterline: id, elevation, antennaType, numberOfAntennas, mountType, mountLocation,
+                   iceShield, coaxRoute, owner, notes, photos, equipmentCount, all with Flagged+Marked, marked, flagged
+  Light: id, elevation+Flagged+Marked, location+Flagged+Marked, notes+Marked, photos, marked, flagged
+  OtherAppurtenance: id, elevation, location, iceShield, description, owner, notes, photos, all with Flagged+Marked
+  CatchAllItem: id, description, flagged, marked
+
+  StructureClimbSurvey: all scalar fields (structureType, legs, safetyClimb, amSkirt, baseWidth,
+    topSteelWidth, topSteelElevation (locked), highestAppurtenance, apexElevation, anchorBoltDiameter,
+    overviewNotes, siteLayoutPhotos, laserDistancePhotos, topBeacon, topBeaconNotes, topBeaconPhotos,
+    lightningProtectionType, lightningProtectionPhotos, safety climb fields, all list fields above)
+
+### Sections (11 total)
+
+  overview            — Structure Overview (4 sub-sections: Details, Photos, Top Beacon, Lightning Protection)
+  safety_climb        — Safety Climb
+  taper_changes       — Taper Changes
+  deficiencies        — Deficiencies
+  base_foundation     — Structure Base & Foundation
+  ground_leads        — Ground Leads
+  guy_attachments     — Guy Attachments (table)
+  mount_centerlines   — Mount Centerlines (table)
+  lights              — Lights (table)
+  other_appurtenances — Other Appurtenances (table)
+  catch_all           — Catch All
+
+### Structure Overview — Sub-section Navigation
+
+Overview section is split into 4 sub-sections with tab bar at top of content and sidebar sub-items:
+
+  Details             — Site Info read-only card + all ClimbFieldRow scalar fields
+                        (Structure Type, Legs, Safety Climb, AM Skirt, Base Width, Top Steel Width,
+                         Top Steel Elevation (locked/green), Highest Appurtenance, Apex Elevation,
+                         Anchor Bolt Dia., Notes)
+  Photos              — Site Layout Photos strip + Laser Distance Photos strip
+  Top Beacon          — Top Beacon Present (YesNo) + Notes input + Photos strip (flat, no accordion)
+  Lightning Protection — Protection Type select + Photos strip (flat, no accordion)
+
+Sidebar shows all 4 sub-items under "Structure Overview" at all times (same pattern as deficiency
+sub-items). Clicking a sub-item sets both the active section and the activeOverviewSub state.
+
+### Safety Climb Section (new, was missing)
+
+  Fields: Location (select from MOUNT_LOCATIONS), Manufacturer (select from SAFETY_CLIMB_MANUFACTURERS),
+          Top Height (ft, number), Notes (textarea)
+  Photos: 2×2 CSS grid — Overview Photos, Bottom Assembly Photos, Top Assembly Photos, Top Internal Components
+  SAFETY_CLIMB_MANUFACTURERS = ['Tuf-Tug', 'Lad-Saf', 'Saflok', 'Steplok', 'Roofmaster', 'Tractel', 'Other']
+
+### Table Sections (Guy Attachments, Mount Centerlines, Lights, Other Appurtenances)
+
+All converted from accordion-per-record to editable blue-header tables matching the
+ComponentLibrary QC Data Table pattern:
+  - bg-[#4a86c8] thead with white bold column labels
+  - overflow-x-auto wrapper for horizontal scroll on small screens
+  - Inline inputs/selects/YesNoToggle per cell
+  - PhotoCell component (camera button + count badge) for photo columns
+  - Flag (red) / Mark (green check) / Delete (Minus) icon buttons in last column
+  - "Add X" footer button
+  - Empty state row when list is empty
+
+### Deficiencies Section
+
+Uses same template as GuyFacilitiesQCPage:
+  - DefFieldRow component: colored 3px left bar (red=unflagged, green=marked), label above bordered value box
+  - DeficiencyAccordion: header (chevron + issue name + flagged chip + photo count) + expanded fields
+    Fields: Issue (select), Severity (SeverityPicker 1–5 buttons), Notes (textarea), Photos (file list style)
+    Footer: Flag + Mark Reviewed action buttons
+  - All deficiencies start with collapsed: false (open by default)
+  - Sidebar sub-items for each deficiency; clicking scrolls to def_${id} anchor
+
+### Structure Base & Foundation — Azimuth Photos
+
+Replaced 4 PhotoAccordion accordions with a flat 2×2 CSS grid:
+  Azimuth 0° | Azimuth 90°
+  Azimuth 180° | Azimuth 270°
+Each cell has a PhotoStrip. Border-r and border-b applied to appropriate cells.
+
+### Sub-components
+
+  ClimbFieldRow     — standard field row: 3px color bar + label + input + flag/mark buttons
+  YesNoToggle       — Yes/No pill toggle
+  PhotoStrip        — thumbnail row with add (dashed camera) and remove (hover Trash2) per photo
+  PhotoCell         — compact camera button + count badge, for use inside tables
+  ItemAccordion     — generic collapsible row (used by Ground Leads)
+  SeverityPicker    — 1–5 colored severity buttons
+  DefFieldRow       — deficiency-style field row with prominent left bar
+  DeficiencyAccordion — full deficiency accordion matching GuyFacilitiesQCPage
+
+### State
+
+  activeOverviewSub: 'details' | 'photos' | 'top_beacon' | 'lightning'  (default: 'details')
+  activeDeficiencyId: string | null
+  activeSectionIdx: number
+  headerCollapsed, navSearch, rightTab, aiFlags, aiAnalyzing, aiAnalyzed
+  saveState, lastSavedAt, completionModalOpen, surveyComplete
+
+### Mock Data (pre-populated)
+
+  structureType: 'Guyed', legs: 'N/A', safetyClimb: 'No', amSkirt: 'No'
+  baseWidth/topSteelWidth: '1.5', topSteelElevation: '315'
+  topBeacon: 'Yes', lightningProtectionType: 'None'
+  safetyClimbLocation: 'Beta', safetyClimbManufacturer: 'Tuf-Tug', safetyClimbTopHeight: '98'
+  3 deficiencies (all collapsed: false), 9 guy attachments (levels 1–9, elevations 35–316 ft)
+  3 mount centerlines, 1 light, 2 other appurtenances, 1 ground lead
+
+---
+
+## TypeScript
+
+No tsc --noEmit run (shell environment issues in this session), but all key patterns verified
+via Grep (ClimbFieldRow, DefFieldRow, activeOverviewSub, table patterns present).
+
+---
+
+Session 4 — StructureClimbQCPage (full build)
+- Built StructureClimbQCPage from scratch (~2100 lines): 11 sections, standard QC shell.
+- Structure Overview split into 4 sub-sections (Details, Photos, Top Beacon, Lightning Protection) with tab bar and sidebar sub-items — no accordions.
+- Safety Climb section added (was missing): Location, Manufacturer, Top Height, Notes + 2×2 photo grid.
+- Guy Attachments, Mount Centerlines, Lights, Other Appurtenances converted from accordions to editable blue-header tables with horizontal scroll, inline inputs, PhotoCell, flag/mark/delete per row.
+- Deficiencies use the same DefFieldRow + DeficiencyAccordion template as GuyFacilitiesQCPage; all start open; sidebar sub-items scroll to each deficiency.
+- Azimuth photo accordions in Base & Foundation replaced with flat 2×2 grid.
+- Route registered in App.tsx; survey_climb set to In Progress in mockData.
+Still not built: Structure Flight QC editor.
