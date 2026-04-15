@@ -104,7 +104,7 @@ export default function SiteSummaryPage() {
           action={<button className="btn-secondary text-xs px-2.5 py-1.5">+ Add</button>}
         >
           {mockSiteSummary.structures.map((s) => (
-            <div key={s.id} className="flex items-center justify-between p-3 rounded-lg border border-nav-gray hover:border-teal-400/40 hover:bg-teal-400/5 transition-colors cursor-pointer group">
+            <div key={s.id} onClick={() => navigate(`/sites/${siteId}/structures/${s.id}`)} className="flex items-center justify-between p-3 rounded-lg border border-nav-gray hover:border-teal-400/40 hover:bg-teal-400/5 transition-colors cursor-pointer group">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-teal-400/8 flex items-center justify-center border border-teal-400/20">
                   <TowerControl size={18} className="text-teal-400" />
@@ -128,7 +128,7 @@ export default function SiteSummaryPage() {
           action={<button className="btn-secondary text-xs px-2.5 py-1.5">+ Add</button>}
         >
           {mockSiteSummary.compounds.map((c) => (
-            <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-nav-gray hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-colors cursor-pointer group">
+            <div key={c.id} onClick={() => navigate(`/sites/${siteId}/compounds/${c.id}`)} className="flex items-center justify-between p-3 rounded-lg border border-nav-gray hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-colors cursor-pointer group">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-indigo-500/8 flex items-center justify-center">
                   <Building2 size={16} className="text-indigo-500" />

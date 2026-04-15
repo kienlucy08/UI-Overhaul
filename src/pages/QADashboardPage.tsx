@@ -211,6 +211,9 @@ export default function QADashboardPage() {
           <span className="text-xs text-std-gray-lm">
             {selected.size} selected
           </span>
+          <button className="btn-primary text-xs px-2.5 py-1.5">
+            <CalendarDays size={13} /> Add to Site Visit
+          </button>
           <button className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-red-600/30 bg-red-600/8 text-red-600 hover:bg-red-600/15 transition-colors">
             <Trash2 size={13} /> Delete ({selected.size})
           </button>

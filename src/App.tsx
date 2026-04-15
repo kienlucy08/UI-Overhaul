@@ -8,6 +8,8 @@ import GuyFacilitiesQCPage from './pages/GuyFacilitiesQCPage'
 import PlumbTwistQCPage from './pages/PlumbTwistQCPage'
 import ServiceCOPQCPage from './pages/ServiceCOPQCPage'
 import StructureClimbQCPage from './pages/StructureClimbQCPage'
+import StructureSummaryPage from './pages/StructureSummaryPage'
+import CompoundSummaryPage from './pages/CompoundSummaryPage'
 import SitesListPage from './pages/SitesListPage'
 import ComponentLibraryPage from './pages/ComponentLibraryPage'
 
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="sites/:siteId" element={<SiteDetailPage />} />
           <Route path="sites/:siteId/summary" element={<Navigate to="../" relative="path" replace />} />
           <Route path="sites/:siteId/visits/:visitId" element={<SiteVisitPage />} />
+          <Route path="sites/:siteId/structures/:structureId" element={<StructureSummaryPage />} />
+          <Route path="sites/:siteId/compounds/:compoundId" element={<CompoundSummaryPage />} />
           <Route path="surveys/survey_guy/qc" element={<GuyFacilitiesQCPage />} />
           <Route path="surveys/survey_pt/qc" element={<PlumbTwistQCPage />} />
           <Route path="surveys/survey_cop/qc" element={<ServiceCOPQCPage />} />
